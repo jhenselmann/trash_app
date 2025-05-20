@@ -57,11 +57,38 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ],
         ),
-        child: Row(
+        child: Stack(
           children: [
-            _buildNavItem(icon: Icons.add_location, label: 'New', index: 0),
-            _buildNavItem(icon: Icons.map, label: 'Map', index: 1),
-            _buildNavItem(icon: Icons.more_horiz, label: 'More', index: 2),
+            // 1. Animierter Blob
+            AnimatedAlign(
+              alignment: _getAlignmentForIndex(_selectedIndex),
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.elasticOut,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final double itemWidth = constraints.maxWidth / 3;
+
+                  return Container(
+                    width: itemWidth,
+                    height: 60,
+                    margin: const EdgeInsets.only(top: 8, bottom: 25),
+                    decoration: BoxDecoration(
+                      color: Colors.yellow,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // 2. Row mit den eigentlichen Nav-Items
+            Row(
+              children: [
+                _buildNavItem(icon: Icons.map, label: 'Map', index: 0),
+                _buildNavItem(icon: Icons.add_location, label: 'New', index: 1),
+                _buildNavItem(icon: Icons.more_horiz, label: 'More', index: 2),
+              ],
+            ),
           ],
         ),
       ),
@@ -73,8 +100,6 @@ class _MainScreenState extends State<MainScreen> {
     required String label,
     required int index,
   }) {
-    final bool isSelected = _selectedIndex == index;
-
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -84,25 +109,30 @@ class _MainScreenState extends State<MainScreen> {
         },
         child: Container(
           margin: const EdgeInsets.fromLTRB(8, 8, 8, 25),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.yellow : Colors.transparent,
-            borderRadius: BorderRadius.circular(50),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(50)),
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: isSelected ? Colors.black : Colors.grey),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.black : Colors.grey,
-                ),
-              ),
+              Icon(icon, color: Colors.black),
+              Text(label, style: const TextStyle(color: Colors.black)),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Alignment _getAlignmentForIndex(int index) {
+    switch (index) {
+      case 0:
+        return Alignment(-1.0, 0.0); // ganz links
+      case 1:
+        return Alignment(0.0, 0.0); // Mitte
+      case 2:
+        return Alignment(1.0, 0.0); // ganz rechts
+      default:
+        return Alignment.center;
+    }
   }
 }
