@@ -62,8 +62,8 @@ class _MainScreenState extends State<MainScreen> {
             // 1. Animierter Blob
             AnimatedAlign(
               alignment: _getAlignmentForIndex(_selectedIndex),
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.elasticOut,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.decelerate, //Das ist die animation
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final double itemWidth = constraints.maxWidth / 3;
@@ -71,7 +71,12 @@ class _MainScreenState extends State<MainScreen> {
                   return Container(
                     width: itemWidth,
                     height: 60,
-                    margin: const EdgeInsets.only(top: 8, bottom: 25),
+                    margin: const EdgeInsets.only(
+                      top: 8,
+                      bottom: 25,
+                      left: 8,
+                      right: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.yellow,
                       borderRadius: BorderRadius.circular(30),
@@ -84,8 +89,8 @@ class _MainScreenState extends State<MainScreen> {
             // 2. Row mit den eigentlichen Nav-Items
             Row(
               children: [
-                _buildNavItem(icon: Icons.map, label: 'Map', index: 0),
-                _buildNavItem(icon: Icons.add_location, label: 'New', index: 1),
+                _buildNavItem(icon: Icons.add_location, label: 'New', index: 0),
+                _buildNavItem(icon: Icons.map, label: 'Map', index: 1),
                 _buildNavItem(icon: Icons.more_horiz, label: 'More', index: 2),
               ],
             ),
