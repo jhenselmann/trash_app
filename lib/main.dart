@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart'; //Flutters frundlegendes UI Kit
+import 'screens/trash_map_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,8 +32,8 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     //Diese 3 Seiten haben wir
-    Center(child: Text('New Trashcan Screen')),
-    Center(child: Text('Map Screen')), //Aktuell nur Platzhalter
+    Center(child: Text('New Trashcan Screen')), //Aktuell nur Platzhalter
+    TrashMapScreen(),
     Center(child: Text('More Screen')),
   ];
 
@@ -66,7 +67,7 @@ class _MainScreenState extends State<MainScreen> {
               curve: Curves.decelerate, //Das ist die animation
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final double itemWidth = constraints.maxWidth / 3;
+                  final double itemWidth = (constraints.maxWidth / 3) - 16;
 
                   return Container(
                     width: itemWidth,
