@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart'; //Flutters frundlegendes UI Kit
+import 'package:trash_app/screens/new_trashcan_screen.dart';
 import 'screens/trash_map_screen.dart';
 
 void main() {
@@ -28,11 +29,12 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0; //Merkt sich welcher Tab aktiv ist
+  int _selectedIndex = 1; //Merkt sich welcher Tab aktiv ist
 
   final List<Widget> _pages = [
     //Diese 3 Seiten haben wir
-    Center(child: Text('New Trashcan Screen')), //Aktuell nur Platzhalter
+    NewTrashcanScreen(),
+    // Center(child: Text('New Trashcan Screen')), //Aktuell nur Platzhalter
     TrashMapScreen(),
     Center(child: Text('More Screen')),
   ];
