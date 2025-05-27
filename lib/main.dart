@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart'; //Flutters frundlegendes UI Kit
+import 'package:flutter/material.dart';
+import 'package:trash_app/screens/more.dart';
 import 'screens/trash_map_screen.dart';
 
 void main() {
@@ -8,12 +9,10 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      //MaterialApp ist ein Widget
-      title: 'Trash App', //title ein argument
+      title: 'Trash App',
       theme: ThemeData(primarySwatch: Colors.yellow),
       home: const MainScreen(),
     );
@@ -33,7 +32,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = [
     Center(child: Text('New Trashcan Screen')),
     TrashMapScreen(),
-    Center(child: Text('More Screen')),
+    MorePage(),
   ];
 
   @override
@@ -128,11 +127,11 @@ class _MainScreenState extends State<MainScreen> {
   Alignment _getAlignmentForIndex(int index) {
     switch (index) {
       case 0:
-        return Alignment(-1.0, 0.0); // ganz links
+        return Alignment(-1.0, 0.0);
       case 1:
-        return Alignment(0.0, 0.0); // Mitte
+        return Alignment(0.0, 0.0);
       case 2:
-        return Alignment(1.0, 0.0); // ganz rechts
+        return Alignment(1.0, 0.0);
       default:
         return Alignment.center;
     }
