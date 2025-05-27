@@ -17,10 +17,10 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
   bool _showWasteTypeButtons = false;
 
   final Map<String, IconData> _wasteIcons = {
-    'plastik': Icons.local_drink, // PET-Flasche
-    'papier': Icons.description, // Dokument
-    'kleidung': Icons.checkroom, // T-Shirt
-    'glas': Icons.wine_bar, // Glasflasche
+    'plastik': Icons.local_drink,
+    'papier': Icons.description,
+    'kleidung': Icons.checkroom,
+    'glas': Icons.wine_bar,
   };
 
   @override
@@ -44,7 +44,6 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
       if (permissionGranted != PermissionStatus.granted) return;
     }
 
-    // ⏱️ Abonniere kontinuierliche Standortänderungen
     location.onLocationChanged.listen((newLocation) {
       if (!mounted) return;
 
@@ -73,8 +72,7 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.trashApp',
               ),
               if (_userLocation != null)
@@ -96,7 +94,6 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
             ],
           ),
 
-          // 🧭 Der Button oben rechts
           Positioned(
             top: 50,
             right: 20,
@@ -119,24 +116,20 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Viertelkreis Buttons
                 if (_showWasteTypeButtons)
                   ..._wasteIcons.entries.toList().asMap().entries.map((entry) {
                     final i = entry.key;
                     final type = entry.value.key;
                     final icon = entry.value.value;
 
-                    final angle = (-20 + i * 40) * pi / 180; // 25° Abstand
+                    final angle = (-20 + i * 40) * pi / 180;
                     final radius = 70.0;
 
                     final dx = radius * cos(angle);
                     final dy = radius * sin(angle);
 
                     return Transform.translate(
-                      offset: Offset(
-                        -dx,
-                        -dy,
-                      ), // Richtung oben/links relativ zur Mitte
+                      offset: Offset(-dx, -dy),
                       child: FloatingActionButton(
                         heroTag: type,
                         mini: true,
@@ -151,7 +144,6 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
                     );
                   }),
 
-                // Haupt-Button
                 GestureDetector(
                   onLongPress: () {
                     setState(() {
