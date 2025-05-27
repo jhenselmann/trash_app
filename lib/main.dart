@@ -28,11 +28,10 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0; //Merkt sich welcher Tab aktiv ist
+  int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    //Diese 3 Seiten haben wir
-    Center(child: Text('New Trashcan Screen')), //Aktuell nur Platzhalter
+    Center(child: Text('New Trashcan Screen')),
     TrashMapScreen(),
     Center(child: Text('More Screen')),
   ];
@@ -40,7 +39,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //--> Leerer App Rahmen mit Zugriff auf Standard Elemente
       body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
         height: 100,
@@ -60,11 +58,10 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Stack(
           children: [
-            // 1. Animierter Blob
             AnimatedAlign(
               alignment: _getAlignmentForIndex(_selectedIndex),
               duration: const Duration(milliseconds: 200),
-              curve: Curves.decelerate, //Das ist die animation
+              curve: Curves.decelerate,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final double itemWidth = (constraints.maxWidth / 3) - 16;
@@ -87,7 +84,6 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
 
-            // 2. Row mit den eigentlichen Nav-Items
             Row(
               children: [
                 _buildNavItem(icon: Icons.add_location, label: 'New', index: 0),
