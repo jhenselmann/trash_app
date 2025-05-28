@@ -17,7 +17,7 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
   final MapController _mapController = MapController();
   LatLng? _userLocation;
   bool _showWasteTypeButtons = false;
-  Set<String> _activeWasteFilters = {}; // leer = alle anzeigen
+  Set<String> _activeWasteFilters = {};
   List<Marker> _allMarkers = [];
   List<Marker> get _visibleWasteMarkers {
     if (_activeWasteFilters.isEmpty) return _allMarkers;
@@ -211,7 +211,13 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
                   child: FloatingActionButton(
                     heroTag: 'main',
                     onPressed: () {
-                      print('📍 Gehe zum nächsten Mülleimer...');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Route to next trashcan (not implemented yet). ',
+                          ),
+                        ),
+                      );
                     },
                     backgroundColor: Colors.white,
                     shape: const CircleBorder(),

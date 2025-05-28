@@ -39,7 +39,6 @@ class HelpPage extends StatelessWidget {
         child: ListView(
           controller: scrollController,
           children: [
-            // Contact Buttons (styled)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -66,14 +65,12 @@ class HelpPage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Header
             const Text(
               'Help & Support',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
-            // Natural "Links" to Chapters
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -88,7 +85,6 @@ class HelpPage extends StatelessWidget {
             ),
             const Divider(height: 40),
 
-            // Vision Section
             Container(
               key: visionKey,
               child: const Column(
@@ -110,7 +106,6 @@ class HelpPage extends StatelessWidget {
               ),
             ),
 
-            // Features Section
             Container(
               key: featuresKey,
               child: const Column(
@@ -143,7 +138,6 @@ class HelpPage extends StatelessWidget {
               ),
             ),
 
-            // Contact Section
             Container(
               key: contactKey,
               child: const Column(
