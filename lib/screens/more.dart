@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:trash_app/screens/more/help.dart';
+import 'package:trash_app/screens/more/profile/profile.dart';
 
 class MorePage extends StatelessWidget {
   const MorePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(title: const Text('More')),
       body: ListView(
@@ -15,46 +15,59 @@ class MorePage extends StatelessWidget {
             context,
             icon: Icons.person,
             title: 'Profile',
-            route: '/more/profile',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            },
           ),
           _buildListTile(
             context,
             icon: Icons.bookmark,
             title: 'Saved Trashcans',
-            route: '/more/saved_trashcan',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Saved Trashcans are not implemented yet. '),
+                ),
+              );
+            },
           ),
           _buildListTile(
             context,
             icon: Icons.delete,
             title: 'My Trashcans',
-            route: '/more/my_trashcans',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('My Trashcans are not implemented yet. '),
+                ),
+              );
+            },
           ),
           _buildListTile(
             context,
             icon: Icons.settings,
             title: 'Settings',
-            route: '/more/settings',
-          ),
-          _buildListTile(
-            context,
-            icon: Icons.language,
-            title: 'Languages',
-            route: '/more/languages',
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.brightness_6),
-            title: const Text('Dark Mode'),
-            value: isDarkMode,
-            onChanged: (value) {
-              // Hier solltest du dein Theme-Management integrieren
-              // z.B. mit Provider, Riverpod, GetX, etc.
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Settings are not implemented yet. '),
+                ),
+              );
             },
           ),
           _buildListTile(
             context,
             icon: Icons.help_outline,
             title: 'Help',
-            route: '/more/help',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HelpPage()),
+              );
+            },
           ),
         ],
       ),
@@ -65,15 +78,13 @@ class MorePage extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String title,
-    required String route,
+    required VoidCallback onTap,
   }) {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () {
-        Navigator.pushNamed(context, route);
-      },
+      onTap: onTap,
     );
   }
 }
