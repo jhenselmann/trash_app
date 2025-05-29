@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart'; //Flutters frundlegendes UI Kit
+import 'package:flutter/material.dart';
+import 'package:trash_app/screens/more.dart';
 import 'package:trash_app/screens/new_trashcan_screen.dart';
 import 'screens/trash_map_screen.dart';
 
@@ -9,13 +10,37 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      //MaterialApp ist ein Widget
-      title: 'Trash App', //title ein argument
-      theme: ThemeData(primarySwatch: Colors.yellow),
+      title: 'Trash App',
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+        fontFamily: 'Roboto',
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.yellow,
+          brightness: Brightness.light,
+          primary: Colors.black,
+          secondary: Colors.yellow,
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.black),
+          titleMedium: TextStyle(color: Colors.black),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 1,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ),
       home: const MainScreen(),
     );
   }
@@ -34,15 +59,13 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = [
     //Diese 3 Seiten haben wir
     NewTrashcanScreen(),
-    // Center(child: Text('New Trashcan Screen')), //Aktuell nur Platzhalter
     TrashMapScreen(),
-    Center(child: Text('More Screen')),
+    MorePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //--> Leerer App Rahmen mit Zugriff auf Standard Elemente
       body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
         height: 100,
@@ -62,11 +85,10 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Stack(
           children: [
-            // 1. Animierter Blob
             AnimatedAlign(
               alignment: _getAlignmentForIndex(_selectedIndex),
               duration: const Duration(milliseconds: 200),
-              curve: Curves.decelerate, //Das ist die animation
+              curve: Curves.decelerate,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final double itemWidth = (constraints.maxWidth / 3) - 16;
@@ -89,7 +111,6 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
 
-            // 2. Row mit den eigentlichen Nav-Items
             Row(
               children: [
                 _buildNavItem(icon: Icons.add_location, label: 'New', index: 0),
@@ -121,10 +142,7 @@ class _MainScreenState extends State<MainScreen> {
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.black),
-              Text(label, style: const TextStyle(color: Colors.black)),
-            ],
+            children: [Icon(icon), Text(label)],
           ),
         ),
       ),
@@ -134,11 +152,11 @@ class _MainScreenState extends State<MainScreen> {
   Alignment _getAlignmentForIndex(int index) {
     switch (index) {
       case 0:
-        return Alignment(-1.0, 0.0); // ganz links
+        return Alignment(-1.0, 0.0);
       case 1:
-        return Alignment(0.0, 0.0); // Mitte
+        return Alignment(0.0, 0.0);
       case 2:
-        return Alignment(1.0, 0.0); // ganz rechts
+        return Alignment(1.0, 0.0);
       default:
         return Alignment.center;
     }

@@ -1,0 +1,18 @@
+final Map<String, String> wasteTypeLabels = {
+  'trash': 'General Waste',
+  'plastic': 'Plastic',
+  'glass_bottles': 'Glass Bottles',
+  'cans': 'Cans',
+  'clothes': 'Clothes',
+  'shoes': 'Shoes',
+  'beverage_cartons': 'Beverage Cartons',
+  'aluminium': 'Aluminium',
+  'paper': 'Paper',
+  'glass': 'Glass',
+  'dog_excrement': 'Dog Waste',
+  'mixed': 'Mixed Waste',
+  'scrap_metal': 'Scrap Metal',
+  'cigarettes': 'Cigarettes',
+  'metal': 'Metal',
+  'PET': 'PET Bottles',
+};

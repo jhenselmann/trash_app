@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
-import 'dart:math';
+import '../data/waste_marker_loader.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import '../widgets/waste_type_list.dart';
 
 class TrashMapScreen extends StatefulWidget {
   const TrashMapScreen({super.key});
@@ -15,18 +17,45 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
   final MapController _mapController = MapController();
   LatLng? _userLocation;
   bool _showWasteTypeButtons = false;
+  Set<String> _activeWasteFilters = {};
+  List<Marker> _allMarkers = [];
+  List<Marker> get _visibleWasteMarkers {
+    if (_activeWasteFilters.isEmpty) return _allMarkers;
+    return _allMarkers.where((m) {
+      final key = m.key;
+      if (key is ValueKey<Map<String, dynamic>>) {
+        final meta = key.value;
+        final raw = meta['wasteTypes'];
+        final types = raw is List ? raw.map((e) => e.toString()).toList() : [];
+        return types.any((t) => _activeWasteFilters.contains(t));
+      }
+      return false;
+    }).toList();
+  }
 
   final Map<String, IconData> _wasteIcons = {
-    'plastik': Icons.local_drink, // PET-Flasche
-    'papier': Icons.description, // Dokument
-    'kleidung': Icons.checkroom, // T-Shirt
-    'glas': Icons.wine_bar, // Glasflasche
+    'plastik': Icons.local_drink,
+    'papier': Icons.description,
+    'kleidung': Icons.checkroom,
+    'glas': Icons.wine_bar,
   };
 
   @override
   void initState() {
     super.initState();
     _initLocation();
+    _loadWasteData();
+  }
+
+  Future<void> _loadWasteData() async {
+    final markers = await WasteMarkerLoader.loadMarkersFromJson(
+      'assets/waste_data.json',
+      context,
+    );
+
+    setState(() {
+      _allMarkers = markers;
+    });
   }
 
   Future<void> _initLocation() async {
@@ -44,7 +73,6 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
       if (permissionGranted != PermissionStatus.granted) return;
     }
 
-    // ⏱️ Abonniere kontinuierliche Standortänderungen
     location.onLocationChanged.listen((newLocation) {
       if (!mounted) return;
 
@@ -68,13 +96,12 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: _userLocation ?? LatLng(52.52, 13.405),
+              initialCenter: _userLocation ?? LatLng(48.137154, 11.576124),
               initialZoom: 14,
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.trashApp',
               ),
               if (_userLocation != null)
@@ -93,10 +120,37 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
                     ),
                   ],
                 ),
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 45,
+                  size: const Size(40, 40),
+                  markers: _visibleWasteMarkers,
+                  polygonOptions: PolygonOptions(
+                    borderColor: Colors.blueAccent,
+                    color: Colors.black12,
+                    borderStrokeWidth: 2,
+                  ),
+                  builder: (context, markers) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.deepOrange,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        markers.length.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
 
-          // 🧭 Der Button oben rechts
           Positioned(
             top: 50,
             right: 20,
@@ -114,59 +168,56 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
           ),
 
           Positioned(
+            top: 50,
+            left: 20,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 4,
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (_) => WasteTypeListPopup(
+                        selected: _activeWasteFilters,
+                        onChanged: (updated) {
+                          setState(() {
+                            _activeWasteFilters = updated;
+                          });
+                        },
+                      ),
+                );
+              },
+
+              icon: const Icon(Icons.search),
+              label: const Text("Filter"),
+            ),
+          ),
+
+          Positioned(
             bottom: 30,
             right: 20,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Viertelkreis Buttons
-                if (_showWasteTypeButtons)
-                  ..._wasteIcons.entries.toList().asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final type = entry.value.key;
-                    final icon = entry.value.value;
-
-                    final angle = (-20 + i * 40) * pi / 180; // 25° Abstand
-                    final radius = 70.0;
-
-                    final dx = radius * cos(angle);
-                    final dy = radius * sin(angle);
-
-                    return Transform.translate(
-                      offset: Offset(
-                        -dx,
-                        -dy,
-                      ), // Richtung oben/links relativ zur Mitte
-                      child: FloatingActionButton(
-                        heroTag: type,
-                        mini: true,
-                        shape: const CircleBorder(),
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        onPressed: () {
-                          print('🗑️ Filter: $type');
-                        },
-                        child: Icon(icon),
-                      ),
-                    );
-                  }),
-
-                // Haupt-Button
                 GestureDetector(
                   onLongPress: () {
                     setState(() {
                       _showWasteTypeButtons = true;
                     });
                   },
-                  onLongPressEnd: (_) {
-                    setState(() {
-                      _showWasteTypeButtons = false;
-                    });
-                  },
                   child: FloatingActionButton(
                     heroTag: 'main',
                     onPressed: () {
-                      print('📍 Gehe zum nächsten Mülleimer...');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Route to next trashcan (not implemented yet). ',
+                          ),
+                        ),
+                      );
                     },
                     backgroundColor: Colors.white,
                     shape: const CircleBorder(),
