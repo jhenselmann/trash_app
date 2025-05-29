@@ -26,14 +26,17 @@ class Locationpin extends StatelessWidget {
             top: 0,
             child: SvgPicture.asset(
               'assets/icons/locate.svg',
-              width: 120,
-              height: 140,
-              colorFilter: const ColorFilter.mode(Colors.yellow, BlendMode.srcIn),
+              width: 100,
+              height: 100,
+              colorFilter: const ColorFilter.mode(
+                Colors.yellow,
+                BlendMode.srcIn,
+              ),
             ),
           ),
           const Positioned(
             top: 20,
-            child: Icon(Icons.delete, size: 48, color: Colors.black),
+            child: Icon(Icons.delete, size: 40, color: Colors.black),
           ),
         ],
       ),

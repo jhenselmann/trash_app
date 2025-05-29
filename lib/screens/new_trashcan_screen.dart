@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
-
+import 'package:flutter_map/flutter_map.dart';
+import 'package:trash_app/screens/confirm_trash_screen.dart';
+import '../widgets/reusable_trash_map.dart';
 import '../widgets/LocationPin.dart';
 
 class NewTrashcanScreen extends StatefulWidget {
@@ -12,56 +12,42 @@ class NewTrashcanScreen extends StatefulWidget {
   State<NewTrashcanScreen> createState() => _NewTrashcanScreenState();
 }
 
-// Dummy next page
-class NextPage extends StatelessWidget {
-  final LatLng userLocation;
+class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
+  LatLng _userLocation = LatLng(52.52, 13.405);
+  bool _showTrashMarkers = true;
+  MapController? _mapController;
 
-  const NextPage({required this.userLocation});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Confirm Location")),
-      body: Center(
-        child: Text(
-          "Selected location: ${userLocation.latitude}, ${userLocation.longitude}",
-        ),
+  void _onSelectLocation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConfirmTrashcanScreen(location: _userLocation),
       ),
     );
   }
-}
 
-class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
-  final MapController _mapController = MapController();
-  late LatLng _userLocation;
+  void _moveToUser() {
+    if (_mapController != null) {
+      _mapController!.move(_userLocation, 16);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              center: _userLocation,
-              zoom: 16.0,
-              onPositionChanged: (position, _) {
-                _userLocation = position.center!;
-              },
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.trashApp',
-              ),
-            ],
+          ReusableTrashMap(
+            onUserLocationUpdate: (loc) {
+              _userLocation = loc;
+            },
+            enableClustering: true,
+            markerFilter: _showTrashMarkers ? null : (_) => [],
+            onMapControllerReady: (controller) {
+              _mapController = controller;
+            },
           ),
-
-          // Center Icon
-          Center(child: Locationpin()),
-
-          // "Select Location" Button
+          const Center(child: Locationpin()),
           Positioned(
             bottom: 20,
             left: 20,
@@ -71,28 +57,42 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.yellow,
                 foregroundColor: Colors.black,
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text('Select Location'),
+              child: const Text('Select Location'),
+            ),
+          ),
+          Positioned(
+            top: 40,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: 'centerOnUser',
+              onPressed: _moveToUser,
+              backgroundColor: Colors.white,
+              mini: true,
+              child: const Icon(Icons.my_location, color: Colors.black),
+            ),
+          ),
+
+          Positioned(
+            top: 40,
+            left: 20,
+            child: FloatingActionButton(
+              heroTag: 'toggleTrashMarkers',
+              onPressed: () {
+                setState(() {
+                  _showTrashMarkers = !_showTrashMarkers;
+                });
+              },
+              backgroundColor: Colors.white,
+              mini: true,
+              child: Icon(
+                _showTrashMarkers ? Icons.delete : Icons.delete_forever,
+                color: Colors.black,
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _userLocation = LatLng(52.52, 13.405);
-  }
-
-  void _onSelectLocation() {
-    // Navigate to the next page, passing the selected location
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => NextPage(userLocation: _userLocation),
       ),
     );
   }
