@@ -7,8 +7,8 @@ class Locationpin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 120,
-      height: 150,
+      width: 100,
+      height: 110,
       child: Stack(
         alignment: Alignment.center,
         children: [

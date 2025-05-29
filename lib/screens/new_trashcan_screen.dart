@@ -1,35 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:trash_app/screens/confirm_trash_screen.dart';
+import 'package:latlong2/latlong.dart';
 import '../widgets/reusable_trash_map.dart';
-import '../widgets/LocationPin.dart';
+import '../widgets/waste_type_list.dart';
 
-class NewTrashcanScreen extends StatefulWidget {
-  const NewTrashcanScreen({super.key});
+class TrashMapScreen extends StatefulWidget {
+  const TrashMapScreen({super.key});
 
   @override
-  State<NewTrashcanScreen> createState() => _NewTrashcanScreenState();
+  State<TrashMapScreen> createState() => _TrashMapScreenState();
 }
 
-class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
-  LatLng _userLocation = LatLng(52.52, 13.405);
-  bool _showTrashMarkers = true;
+class _TrashMapScreenState extends State<TrashMapScreen> {
   MapController? _mapController;
-
-  void _onSelectLocation() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ConfirmTrashcanScreen(location: _userLocation),
-      ),
-    );
-  }
+  LatLng? _userLocation;
+  Set<String> _activeWasteFilters = {};
 
   void _moveToUser() {
-    if (_mapController != null) {
-      _mapController!.move(_userLocation, 16);
+    if (_mapController != null && _userLocation != null) {
+      _mapController!.move(_userLocation!, 16);
     }
+  }
+
+  List<Marker> _applyWasteTypeFilter(List<Marker> all) {
+    if (_activeWasteFilters.isEmpty) return all;
+
+    return all.where((m) {
+      final key = m.key;
+      if (key is ValueKey<Map<String, dynamic>>) {
+        final meta = key.value;
+        final raw = meta['wasteTypes'];
+        final types = raw is List ? raw.map((e) => e.toString()).toList() : [];
+        return types.any((t) => _activeWasteFilters.contains(t));
+      }
+      return false;
+    }).toList();
   }
 
   @override
@@ -42,28 +47,15 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
               _userLocation = loc;
             },
             enableClustering: true,
-            markerFilter: _showTrashMarkers ? null : (_) => [],
+            markerFilter: _applyWasteTypeFilter,
             onMapControllerReady: (controller) {
               _mapController = controller;
             },
           ),
-          const Center(child: Locationpin()),
+
+          // Standort-Zentrierung
           Positioned(
-            bottom: 20,
-            left: 20,
-            right: 20,
-            child: ElevatedButton(
-              onPressed: _onSelectLocation,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.yellow,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text('Select Location'),
-            ),
-          ),
-          Positioned(
-            top: 40,
+            top: 50,
             right: 20,
             child: FloatingActionButton(
               heroTag: 'centerOnUser',
@@ -74,22 +66,53 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
             ),
           ),
 
+          // Filter-Button
           Positioned(
-            top: 40,
+            top: 50,
             left: 20,
-            child: FloatingActionButton(
-              heroTag: 'toggleTrashMarkers',
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 4,
+              ),
               onPressed: () {
-                setState(() {
-                  _showTrashMarkers = !_showTrashMarkers;
-                });
+                showDialog(
+                  context: context,
+                  builder:
+                      (_) => WasteTypeListPopup(
+                    selected: _activeWasteFilters,
+                    onChanged: (updated) {
+                      setState(() {
+                        _activeWasteFilters = updated;
+                      });
+                    },
+                  ),
+                );
+              },
+              icon: const Icon(Icons.search),
+              label: const Text("Filter"),
+            ),
+          ),
+
+          // Dummy Button unten rechts
+          Positioned(
+            bottom: 30,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: 'main',
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Route to next trashcan (not implemented yet).',
+                    ),
+                  ),
+                );
               },
               backgroundColor: Colors.white,
-              mini: true,
-              child: Icon(
-                _showTrashMarkers ? Icons.delete : Icons.delete_forever,
-                color: Colors.black,
-              ),
+              shape: const CircleBorder(),
+              child: const Icon(Icons.delete, size: 35, color: Colors.black),
             ),
           ),
         ],
