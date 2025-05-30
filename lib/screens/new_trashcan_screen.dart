@@ -46,6 +46,7 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
             onMapControllerReady: (controller) {
               _mapController = controller;
             },
+            initialZoom: 18,
           ),
           const Center(child: Locationpin()),
           Positioned(

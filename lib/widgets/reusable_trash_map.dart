@@ -14,6 +14,7 @@ class ReusableTrashMap extends StatefulWidget {
   final MarkerFilter? markerFilter;
   final bool enableClustering;
   final void Function(MapController)? onMapControllerReady;
+  final double initialZoom;
 
   const ReusableTrashMap({
     super.key,
@@ -21,6 +22,7 @@ class ReusableTrashMap extends StatefulWidget {
     this.markerFilter,
     this.enableClustering = true,
     this.onMapControllerReady,
+    this.initialZoom = 14,
   });
 
   @override
@@ -37,7 +39,6 @@ class _ReusableTrashMapState extends State<ReusableTrashMap> {
     super.initState();
     _initLocation();
     _loadMarkers();
-
     if (widget.onMapControllerReady != null) {
       widget.onMapControllerReady!(_mapController);
     }
@@ -92,7 +93,7 @@ class _ReusableTrashMapState extends State<ReusableTrashMap> {
       mapController: _mapController,
       options: MapOptions(
         initialCenter: _userLocation ?? LatLng(48.137154, 11.576124),
-        initialZoom: 14,
+        initialZoom: widget.initialZoom,
       ),
       children: [
         TileLayer(
