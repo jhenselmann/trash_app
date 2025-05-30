@@ -1,40 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:trash_app/screens/confirm_trash_screen.dart';
 import '../widgets/reusable_trash_map.dart';
-import '../widgets/waste_type_list.dart';
+import '../widgets/LocationPin.dart';
 
-class TrashMapScreen extends StatefulWidget {
-  const TrashMapScreen({super.key});
+class NewTrashcanScreen extends StatefulWidget {
+  const NewTrashcanScreen({super.key});
 
   @override
-  State<TrashMapScreen> createState() => _TrashMapScreenState();
+  State<NewTrashcanScreen> createState() => _NewTrashcanScreenState();
 }
 
-class _TrashMapScreenState extends State<TrashMapScreen> {
+class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
+  LatLng _userLocation = LatLng(52.52, 13.405);
+  bool _showTrashMarkers = true;
   MapController? _mapController;
-  LatLng? _userLocation;
-  Set<String> _activeWasteFilters = {};
 
-  void _moveToUser() {
-    if (_mapController != null && _userLocation != null) {
-      _mapController!.move(_userLocation!, 16);
-    }
+  void _onSelectLocation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConfirmTrashcanScreen(location: _userLocation),
+      ),
+    );
   }
 
-  List<Marker> _applyWasteTypeFilter(List<Marker> all) {
-    if (_activeWasteFilters.isEmpty) return all;
-
-    return all.where((m) {
-      final key = m.key;
-      if (key is ValueKey<Map<String, dynamic>>) {
-        final meta = key.value;
-        final raw = meta['wasteTypes'];
-        final types = raw is List ? raw.map((e) => e.toString()).toList() : [];
-        return types.any((t) => _activeWasteFilters.contains(t));
-      }
-      return false;
-    }).toList();
+  void _moveToUser() {
+    if (_mapController != null) {
+      _mapController!.move(_userLocation, 16);
+    }
   }
 
   @override
@@ -47,15 +42,28 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
               _userLocation = loc;
             },
             enableClustering: true,
-            markerFilter: _applyWasteTypeFilter,
+            markerFilter: _showTrashMarkers ? null : (_) => [],
             onMapControllerReady: (controller) {
               _mapController = controller;
             },
           ),
-
-          // Standort-Zentrierung
+          const Center(child: Locationpin()),
           Positioned(
-            top: 50,
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: ElevatedButton(
+              onPressed: _onSelectLocation,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.yellow,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: const Text('Select Location'),
+            ),
+          ),
+          Positioned(
+            top: 40,
             right: 20,
             child: FloatingActionButton(
               heroTag: 'centerOnUser',
@@ -66,53 +74,22 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
             ),
           ),
 
-          // Filter-Button
           Positioned(
-            top: 50,
+            top: 40,
             left: 20,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 4,
-              ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder:
-                      (_) => WasteTypeListPopup(
-                    selected: _activeWasteFilters,
-                    onChanged: (updated) {
-                      setState(() {
-                        _activeWasteFilters = updated;
-                      });
-                    },
-                  ),
-                );
-              },
-              icon: const Icon(Icons.search),
-              label: const Text("Filter"),
-            ),
-          ),
-
-          // Dummy Button unten rechts
-          Positioned(
-            bottom: 30,
-            right: 20,
             child: FloatingActionButton(
-              heroTag: 'main',
+              heroTag: 'toggleTrashMarkers',
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Route to next trashcan (not implemented yet).',
-                    ),
-                  ),
-                );
+                setState(() {
+                  _showTrashMarkers = !_showTrashMarkers;
+                });
               },
               backgroundColor: Colors.white,
-              shape: const CircleBorder(),
-              child: const Icon(Icons.delete, size: 35, color: Colors.black),
+              mini: true,
+              child: Icon(
+                _showTrashMarkers ? Icons.delete : Icons.delete_forever,
+                color: Colors.black,
+              ),
             ),
           ),
         ],
