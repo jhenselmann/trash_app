@@ -1,41 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../data/waste_labels.dart';
+import '../services/saved_trashcan_service.dart';
 
-class WastePopup extends StatelessWidget {
+class WastePopup extends StatefulWidget {
+  final String id; // NEU
   final LatLng location;
   final List<String> wasteTypes;
   final String wasteForm;
 
   const WastePopup({
     super.key,
+    required this.id,
     required this.location,
     required this.wasteTypes,
     required this.wasteForm,
   });
 
   @override
+  State<WastePopup> createState() => _WastePopupState();
+}
+
+class _WastePopupState extends State<WastePopup> {
+  bool _isSaved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedStatus();
+  }
+
+  Future<void> _loadSavedStatus() async {
+    final isSaved = await SavedTrashcanService.isSaved(widget.id);
+    if (mounted) {
+      setState(() => _isSaved = isSaved);
+    }
+  }
+
+  Future<void> _toggleSave() async {
+    await SavedTrashcanService.toggle(widget.id);
+    final updated = await SavedTrashcanService.isSaved(widget.id);
+
+    if (mounted) {
+      setState(() => _isSaved = updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isSaved ? 'Trashcan saved' : 'Trashcan unsaved'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _getIconForForm(), // ← ersetzt: Icon(...)
-          const SizedBox(width: 8),
-          Text(_getTitleForForm()),
+          Row(
+            children: [
+              _getIconForForm(),
+              const SizedBox(width: 8),
+              Text(_getTitleForForm()),
+            ],
+          ),
+          IconButton(
+            icon: Icon(
+              _isSaved ? Icons.bookmark : Icons.bookmark_border,
+              color: Colors.black87,
+            ),
+            tooltip: _isSaved ? 'Saved' : 'Save',
+            onPressed: _toggleSave,
+          ),
         ],
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '📍 Location: ${location.latitude.toStringAsFixed(5)}, ${location.longitude.toStringAsFixed(5)}',
+            '📍 Location: ${widget.location.latitude.toStringAsFixed(5)}, ${widget.location.longitude.toStringAsFixed(5)}',
           ),
           const SizedBox(height: 12),
           const Text('Trash Types:'),
           const SizedBox(height: 4),
-          ...(wasteTypes.isEmpty
+          ...(widget.wasteTypes.isEmpty
               ? [const Text("• General Waste")]
-              : wasteTypes
+              : widget.wasteTypes
                   .map((w) => Text("• ${wasteTypeLabels[w] ?? w}"))
                   .toList()),
         ],
@@ -49,9 +100,8 @@ class WastePopup extends StatelessWidget {
     );
   }
 
-  /// Liefert je nach Typ ein Icon oder Bild zurück
   Widget _getIconForForm() {
-    switch (wasteForm) {
+    switch (widget.wasteForm) {
       case 'basket':
         return const Icon(Icons.delete_outline, color: Colors.black);
       case 'container':
@@ -64,7 +114,7 @@ class WastePopup extends StatelessWidget {
   }
 
   String _getTitleForForm() {
-    switch (wasteForm) {
+    switch (widget.wasteForm) {
       case 'basket':
         return 'Trash can';
       case 'container':

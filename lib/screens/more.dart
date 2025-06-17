@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trash_app/screens/more/help.dart';
 import 'package:trash_app/screens/more/profile/profile.dart';
+import 'package:trash_app/screens/more/saved_trashcans_page.dart'; // hinzufügen
 
 class MorePage extends StatelessWidget {
   const MorePage({Key? key}) : super(key: key);
@@ -27,10 +28,9 @@ class MorePage extends StatelessWidget {
             icon: Icons.bookmark,
             title: 'Saved Trashcans',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Saved Trashcans are not implemented yet. '),
-                ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SavedTrashcansPage()),
               );
             },
           ),

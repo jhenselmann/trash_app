@@ -4,16 +4,23 @@ import 'package:latlong2/latlong.dart';
 import '../widgets/waste_popup.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
+import '../services/saved_trashcan_service.dart';
 
 class WasteMarkerLoader {
-  static Widget _buildMarkerIcon(String wasteForm) {
+  static Widget _buildMarkerIcon(String wasteForm, bool isSaved) {
     switch (wasteForm) {
       case 'basket':
-        return const Icon(Icons.delete_outline, size: 20, color: Colors.black);
+        return Icon(Icons.delete_outline, size: 20, color: Colors.black);
       case 'container':
-        return Image.asset('assets/icons/container.png', width: 20, height: 20);
+        return Image.asset(
+          'assets/icons/container.png',
+          width: 20,
+          height: 20,
+          color: Colors.black,
+          colorBlendMode: BlendMode.srcIn,
+        );
       case 'centre':
-        return const Icon(Icons.recycling, size: 20, color: Colors.black);
+        return Icon(Icons.recycling, size: 20, color: Colors.black);
       default:
         return const Icon(Icons.help_outline, size: 20, color: Colors.grey);
     }
@@ -32,14 +39,22 @@ class WasteMarkerLoader {
       final coords = item['coordinates'];
       final wasteTypes = item['wasteTypes'] ?? [];
       final wasteForm = item['wasteForm'] ?? 'unknown';
+      final id = item['id'] ?? '';
 
       if (wasteForm == 'unknown') continue;
 
       final latLng = LatLng(coords[1], coords[0]);
 
+      final isSaved = await SavedTrashcanService.isSaved(id);
+
       markers.add(
         Marker(
-          key: ValueKey({'wasteTypes': wasteTypes, 'wasteForm': wasteForm}),
+          key: ValueKey({
+            'id': id,
+            'wasteTypes': wasteTypes,
+            'wasteForm': wasteForm,
+            'saved': isSaved,
+          }),
           point: latLng,
           width: 30,
           height: 30,
@@ -49,6 +64,7 @@ class WasteMarkerLoader {
                 context: context,
                 builder:
                     (_) => WastePopup(
+                      id: id,
                       location: latLng,
                       wasteTypes: List<String>.from(wasteTypes),
                       wasteForm: wasteForm,
@@ -68,7 +84,7 @@ class WasteMarkerLoader {
                   ),
                 ],
               ),
-              child: _buildMarkerIcon(wasteForm),
+              child: _buildMarkerIcon(wasteForm, isSaved),
             ),
           ),
         ),

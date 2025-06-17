@@ -85,6 +85,32 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
             ),
           ),
 
+          // "Clear Filters"-Button unter dem Filter-Button
+          if (_activeWasteFilters.isNotEmpty)
+            Positioned(
+              top: 100,
+              left: 20,
+              child: SizedBox(
+                height: 32,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.grey[200],
+                    foregroundColor: Colors.black87,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _activeWasteFilters.clear();
+                    });
+                  },
+                  child: const Text("Clear filters"),
+                ),
+              ),
+            ),
+
           // Aktive Filter-Chips anzeigen
           if (_activeWasteFilters.isNotEmpty)
             Positioned(

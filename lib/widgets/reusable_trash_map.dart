@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
@@ -30,6 +31,9 @@ class ReusableTrashMap extends StatefulWidget {
 
 class ReusableTrashMapState extends State<ReusableTrashMap> {
   final MapController _mapController = MapController();
+  final Location _location = Location();
+  StreamSubscription<LocationData>? _locationSubscription;
+
   LatLng? _userLocation;
   List<LatLng> _routePoints = [];
   bool _routeActive = false;
@@ -51,23 +55,28 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
     widget.onMapControllerReady?.call(_mapController);
   }
 
-  Future<void> _initLocation() async {
-    final location = Location();
+  @override
+  void dispose() {
+    _locationSubscription?.cancel();
+    super.dispose();
+  }
 
-    bool serviceEnabled = await location.serviceEnabled();
+  Future<void> _initLocation() async {
+    bool serviceEnabled = await _location.serviceEnabled();
     if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
+      serviceEnabled = await _location.requestService();
       if (!serviceEnabled) return;
     }
 
-    PermissionStatus permissionGranted = await location.hasPermission();
+    PermissionStatus permissionGranted = await _location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
+      permissionGranted = await _location.requestPermission();
       if (permissionGranted != PermissionStatus.granted) return;
     }
 
-    location.onLocationChanged.listen((newLoc) {
+    _locationSubscription = _location.onLocationChanged.listen((newLoc) {
       final loc = LatLng(newLoc.latitude!, newLoc.longitude!);
+      if (!mounted) return;
       setState(() {
         _userLocation = loc;
       });
@@ -76,7 +85,7 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
 
     // fallback falls Location nicht liefert
     await Future.delayed(const Duration(seconds: 2));
-    if (_userLocation == null) {
+    if (_userLocation == null && mounted) {
       setState(() {
         _userLocation = LatLng(48.137154, 11.576124); // München
       });
@@ -89,6 +98,7 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
       'assets/waste_data.json',
       context,
     );
+    if (!mounted) return;
     setState(() {
       _allMarkers = markers;
     });
@@ -137,6 +147,8 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
         profile: 'foot-walking',
       );
 
+      if (!mounted) return;
+
       setState(() {
         _routePoints = route;
         _routeActive = true;
@@ -152,6 +164,7 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
         const SnackBar(content: Text('Route to nearest trash loaded.')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error while loading nearest route.')),
       );
