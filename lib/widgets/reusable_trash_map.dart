@@ -32,6 +32,12 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
   final MapController _mapController = MapController();
   LatLng? _userLocation;
   List<LatLng> _routePoints = [];
+  bool _routeActive = false;
+  double? _routeDistanceMeters;
+
+  bool get routeActive => _routeActive;
+  double? get routeDistanceMeters => _routeDistanceMeters;
+
   List<Marker> _allMarkers = [];
 
   List<Marker> get allMarkers => _allMarkers;
@@ -98,7 +104,7 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
     if (_userLocation == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Kein Standort verfügbar')));
+      ).showSnackBar(const SnackBar(content: Text('No location found')));
       return;
     }
 
@@ -106,7 +112,7 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
     if (visible.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Keine Mülleimer gefunden')));
+      ).showSnackBar(const SnackBar(content: Text('No trashcan found')));
       return;
     }
 
@@ -133,17 +139,31 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
 
       setState(() {
         _routePoints = route;
+        _routeActive = true;
+        _routeDistanceMeters = const Distance().as(
+          LengthUnit.Meter,
+          _userLocation!,
+          nearest!.point,
+        );
       });
 
       _mapController.move(nearest.point, 16);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Route geladen')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Route to nearest trash loaded.')),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fehler beim Laden der Route')),
+        const SnackBar(content: Text('Error while loading nearest route.')),
       );
     }
+  }
+
+  void cancelRoute() {
+    setState(() {
+      _routePoints.clear();
+      _routeDistanceMeters = null;
+      _routeActive = false;
+    });
   }
 
   @override
