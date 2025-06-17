@@ -35,12 +35,10 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
   List<LatLng> _routePoints = [];
   bool _routeActive = false;
   double? _routeDistanceMeters;
-
   List<Marker> _allMarkers = [];
 
   bool get routeActive => _routeActive;
   double? get routeDistanceMeters => _routeDistanceMeters;
-  List<Marker> get allMarkers => _allMarkers;
 
   @override
   void initState() {
@@ -49,15 +47,44 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
     widget.onMapControllerReady?.call(_mapController);
   }
 
+  void centerOnPoint(LatLng position) {
+    _mapController.move(position, 16);
+  }
+
+  Future<void> routeToPoint(LatLng target) async {
+    final userLoc = context.read<LocationService>().currentLocation;
+    if (userLoc == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Standort nicht verfügbar')));
+      return;
+    }
+    try {
+      final route = await RoutingService.fetchRoute(
+        start: userLoc,
+        end: target,
+        profile: 'foot-walking',
+      );
+      setState(() {
+        _routePoints = route;
+        _routeActive = true;
+        _routeDistanceMeters = Distance().as(LengthUnit.Meter, userLoc, target);
+      });
+      _mapController.move(target, 16);
+    } catch (_) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Routing fehlgeschlagen')));
+    }
+  }
+
   Future<void> _loadMarkers() async {
     final markers = await WasteMarkerLoader.loadMarkersFromJson(
       'assets/waste_data.json',
       context,
     );
     if (!mounted) return;
-    setState(() {
-      _allMarkers = markers;
-    });
+    setState(() => _allMarkers = markers);
   }
 
   void centerOnUser() {
@@ -72,56 +99,49 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
     if (userLocation == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('No location found')));
+      ).showSnackBar(const SnackBar(content: Text('Standort nicht verfügbar')));
       return;
     }
-
     final visible = widget.markerFilter?.call(_allMarkers) ?? _allMarkers;
     if (visible.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('No trashcan found')));
+      ).showSnackBar(const SnackBar(content: Text('Kein Mülleimer gefunden')));
       return;
     }
 
-    final distance = const Distance();
+    final distCalc = Distance();
     Marker? nearest;
     double shortest = double.infinity;
-
     for (final m in visible) {
-      final d = distance(userLocation, m.point);
+      final d = distCalc(userLocation, m.point);
       if (d < shortest) {
         shortest = d;
         nearest = m;
       }
     }
-
     if (nearest == null) return;
 
     try {
       final route = await RoutingService.fetchRoute(
         start: userLocation,
-
         end: nearest.point,
         profile: 'foot-walking',
       );
-
       if (!mounted) return;
-
       setState(() {
         _routePoints = route;
         _routeActive = true;
-        _routeDistanceMeters = distance(userLocation, nearest!.point);
+        _routeDistanceMeters = distCalc(userLocation, nearest!.point);
       });
-
       _mapController.move(nearest.point, 16);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Route to nearest trash loaded.')),
-      );
-    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Route geladen')));
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error while loading nearest route.')),
+        const SnackBar(content: Text('Fehler beim Laden der Route')),
       );
     }
   }

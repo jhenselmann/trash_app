@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:trash_app/screens/trash_map_screen.dart';
 import 'package:trash_app/services/saved_trashcan_service.dart';
 import 'package:trash_app/screens/trashcan_detail_screen.dart';
 
@@ -127,14 +128,28 @@ class _TrashcanTileState extends State<TrashcanTile> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _actionButton(Icons.map, "Map", () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Zentriere Marker (TODO)")),
+                final coords = widget.item['coordinates'];
+                final target = LatLng(coords[1], coords[0]);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TrashMapScreen(focusTrashcan: target),
+                  ),
                 );
               }),
               _verticalDivider(),
               _actionButton(Icons.alt_route, "Route", () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Starte Navigation (TODO)")),
+                final coords = widget.item['coordinates'];
+                final target = LatLng(coords[1], coords[0]);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => TrashMapScreen(
+                          focusTrashcan: target,
+                          routeToFocus: true,
+                        ),
+                  ),
                 );
               }),
               _verticalDivider(),

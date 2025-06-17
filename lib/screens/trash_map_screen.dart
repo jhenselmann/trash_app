@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_app/screens/trashcan_list_screen.dart';
 import 'package:trash_app/services/location_service.dart';
@@ -7,7 +8,14 @@ import '../widgets/reusable_trash_map.dart';
 import '../widgets/waste_type_list.dart';
 
 class TrashMapScreen extends StatefulWidget {
-  const TrashMapScreen({super.key});
+  final LatLng? focusTrashcan;
+  final bool routeToFocus;
+
+  const TrashMapScreen({
+    super.key,
+    this.focusTrashcan,
+    this.routeToFocus = false,
+  });
 
   @override
   State<TrashMapScreen> createState() => _TrashMapScreenState();
@@ -16,6 +24,22 @@ class TrashMapScreen extends StatefulWidget {
 class _TrashMapScreenState extends State<TrashMapScreen> {
   final GlobalKey<ReusableTrashMapState> _mapKey = GlobalKey();
   Set<String> _activeWasteFilters = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.focusTrashcan != null) {
+        // 1. Karte auf den Punkt zentrieren
+        _mapKey.currentState?.centerOnPoint(widget.focusTrashcan!);
+        // 2. Optional: direkt Route anzeigen (wenn routeToFocus = true)
+        if (widget.routeToFocus) {
+          _mapKey.currentState?.routeToPoint(widget.focusTrashcan!);
+          setState(() {});
+        }
+      }
+    });
+  }
 
   List<Marker> _applyWasteTypeFilter(List<Marker> all) {
     if (_activeWasteFilters.isEmpty) return all;
