@@ -6,6 +6,19 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 
 class WasteMarkerLoader {
+  static Widget _buildMarkerIcon(String wasteForm) {
+    switch (wasteForm) {
+      case 'basket':
+        return const Icon(Icons.delete_outline, size: 20, color: Colors.black);
+      case 'container':
+        return Image.asset('assets/icons/container.png', width: 20, height: 20);
+      case 'centre':
+        return const Icon(Icons.recycling, size: 20, color: Colors.black);
+      default:
+        return const Icon(Icons.help_outline, size: 20, color: Colors.grey);
+    }
+  }
+
   static Future<List<Marker>> loadMarkersFromJson(
     String assetPath,
     BuildContext context,
@@ -23,21 +36,6 @@ class WasteMarkerLoader {
       if (wasteForm == 'unknown') continue;
 
       final latLng = LatLng(coords[1], coords[0]);
-
-      IconData icon;
-      switch (wasteForm) {
-        case 'basket':
-          icon = Icons.delete_outline;
-          break;
-        case 'container':
-          icon = Icons.local_shipping;
-          break;
-        case 'centre':
-          icon = Icons.home_repair_service;
-          break;
-        default:
-          continue;
-      }
 
       markers.add(
         Marker(
@@ -70,7 +68,7 @@ class WasteMarkerLoader {
                   ),
                 ],
               ),
-              child: Center(child: Icon(icon, size: 20, color: Colors.black)),
+              child: _buildMarkerIcon(wasteForm),
             ),
           ),
         ),

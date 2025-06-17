@@ -19,7 +19,7 @@ class WastePopup extends StatelessWidget {
     return AlertDialog(
       title: Row(
         children: [
-          Icon(_getIconForForm(), color: const Color.fromARGB(255, 0, 0, 0)),
+          _getIconForForm(), // ← ersetzt: Icon(...)
           const SizedBox(width: 8),
           Text(_getTitleForForm()),
         ],
@@ -49,16 +49,17 @@ class WastePopup extends StatelessWidget {
     );
   }
 
-  IconData _getIconForForm() {
+  /// Liefert je nach Typ ein Icon oder Bild zurück
+  Widget _getIconForForm() {
     switch (wasteForm) {
       case 'basket':
-        return Icons.delete_outline;
+        return const Icon(Icons.delete_outline, color: Colors.black);
       case 'container':
-        return Icons.local_shipping;
+        return Image.asset('assets/icons/container.png', width: 24, height: 24);
       case 'centre':
-        return Icons.home_repair_service;
+        return const Icon(Icons.recycling, color: Colors.black);
       default:
-        return Icons.help;
+        return const Icon(Icons.help, color: Colors.grey);
     }
   }
 
@@ -71,7 +72,7 @@ class WastePopup extends StatelessWidget {
       case 'centre':
         return 'Recycling center';
       default:
-        return 'unknown';
+        return 'Unknown';
     }
   }
 }

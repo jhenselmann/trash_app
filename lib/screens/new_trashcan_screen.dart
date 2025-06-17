@@ -17,13 +17,85 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
   bool _showTrashMarkers = true;
   MapController? _mapController;
 
-  void _onSelectLocation() {
-    Navigator.push(
+  Future<void> _onSelectLocation() async {
+    final confirmed = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ConfirmTrashcanScreen(location: _userLocation),
+        builder: (_) => ConfirmTrashcanScreen(location: _userLocation),
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      showDialog(
+        context: context,
+        builder:
+            (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              contentPadding: const EdgeInsets.all(24),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.eco, color: Colors.green, size: 48),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Thank you!",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Your contribution makes a real difference 🌍\n\nThanks to people like you, this app can grow – and the planet gets a little cleaner.",
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text("Keep going!"),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Submission undone."),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[400],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text("Undo"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+      );
+    }
   }
 
   void _moveToUser() {
