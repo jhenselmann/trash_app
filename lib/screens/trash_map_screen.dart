@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:flutter_map/flutter_map.dart'; // ← Wichtig!
 import '../widgets/reusable_trash_map.dart';
 import '../widgets/waste_type_list.dart';
 
@@ -12,15 +11,8 @@ class TrashMapScreen extends StatefulWidget {
 }
 
 class _TrashMapScreenState extends State<TrashMapScreen> {
-  MapController? _mapController;
-  LatLng? _userLocation;
+  final GlobalKey<ReusableTrashMapState> _mapKey = GlobalKey();
   Set<String> _activeWasteFilters = {};
-
-  void _moveToUser() {
-    if (_mapController != null && _userLocation != null) {
-      _mapController!.move(_userLocation!, 16);
-    }
-  }
 
   List<Marker> _applyWasteTypeFilter(List<Marker> all) {
     if (_activeWasteFilters.isEmpty) return all;
@@ -43,14 +35,9 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
       body: Stack(
         children: [
           ReusableTrashMap(
-            onUserLocationUpdate: (loc) {
-              _userLocation = loc;
-            },
-            enableClustering: true,
+            key: _mapKey,
+            onUserLocationUpdate: (_) {},
             markerFilter: _applyWasteTypeFilter,
-            onMapControllerReady: (controller) {
-              _mapController = controller;
-            },
           ),
 
           // Standort-Zentrierung
@@ -59,7 +46,7 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
             right: 20,
             child: FloatingActionButton(
               heroTag: 'centerOnUser',
-              onPressed: _moveToUser,
+              onPressed: () => _mapKey.currentState?.centerOnUser(),
               backgroundColor: Colors.white,
               mini: true,
               child: const Icon(Icons.my_location, color: Colors.black),
@@ -95,21 +82,13 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
             ),
           ),
 
-          // Dummy Button unten rechts
+          // Route zum nächsten Mülleimer
           Positioned(
             bottom: 30,
             right: 20,
             child: FloatingActionButton(
               heroTag: 'main',
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Route to next trashcan (not implemented yet).',
-                    ),
-                  ),
-                );
-              },
+              onPressed: () => _mapKey.currentState?.routeToNearestTrashcan(),
               backgroundColor: Colors.white,
               shape: const CircleBorder(),
               child: const Icon(Icons.delete, size: 35, color: Colors.black),

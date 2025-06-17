@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:trash_app/data/waste_labels.dart'; // passe den Pfad ggf. an
+import 'package:trash_app/data/waste_labels.dart';
 import 'package:geocoding/geocoding.dart';
 
 class ConfirmTrashcanScreen extends StatefulWidget {

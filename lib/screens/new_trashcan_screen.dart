@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:trash_app/screens/confirm_trash_screen.dart';
+import 'package:trash_app/screens/addtrashcan/confirm_trash_screen.dart';
 import '../widgets/reusable_trash_map.dart';
 import '../widgets/LocationPin.dart';
 

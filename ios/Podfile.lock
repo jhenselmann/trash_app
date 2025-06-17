@@ -25,7 +25,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  geocoding_ios: 86f1c479822f07a2f79f7094f2b753d1e9e20215
+  geocoding_ios: bcbdaa6bddd7d3129c9bcb8acddc5d8778689768
   location: 155caecf9da4f280ab5fe4a55f94ceccfab838f8
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
 

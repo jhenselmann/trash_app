@@ -1,11 +1,10 @@
-// widgets/reusable_trash_map.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
-import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import '../data/waste_marker_loader.dart';
+import '../services/routing_service.dart';
 
 typedef MarkerFilter = List<Marker> Function(List<Marker> all);
 
@@ -26,22 +25,24 @@ class ReusableTrashMap extends StatefulWidget {
   });
 
   @override
-  State<ReusableTrashMap> createState() => _ReusableTrashMapState();
+  State<ReusableTrashMap> createState() => ReusableTrashMapState();
 }
 
-class _ReusableTrashMapState extends State<ReusableTrashMap> {
+class ReusableTrashMapState extends State<ReusableTrashMap> {
   final MapController _mapController = MapController();
   LatLng? _userLocation;
+  List<LatLng> _routePoints = [];
   List<Marker> _allMarkers = [];
+
+  List<Marker> get allMarkers => _allMarkers;
+  LatLng? get userLocation => _userLocation;
 
   @override
   void initState() {
     super.initState();
     _initLocation();
     _loadMarkers();
-    if (widget.onMapControllerReady != null) {
-      widget.onMapControllerReady!(_mapController);
-    }
+    widget.onMapControllerReady?.call(_mapController);
   }
 
   Future<void> _initLocation() async {
@@ -59,16 +60,22 @@ class _ReusableTrashMapState extends State<ReusableTrashMap> {
       if (permissionGranted != PermissionStatus.granted) return;
     }
 
-    location.onLocationChanged.listen((newLocation) {
-      if (!mounted) return;
-      final loc = LatLng(newLocation.latitude!, newLocation.longitude!);
-
+    location.onLocationChanged.listen((newLoc) {
+      final loc = LatLng(newLoc.latitude!, newLoc.longitude!);
       setState(() {
         _userLocation = loc;
       });
-
       widget.onUserLocationUpdate(loc);
     });
+
+    // fallback falls Location nicht liefert
+    await Future.delayed(const Duration(seconds: 2));
+    if (_userLocation == null) {
+      setState(() {
+        _userLocation = LatLng(48.137154, 11.576124); // München
+      });
+      widget.onUserLocationUpdate(_userLocation!);
+    }
   }
 
   Future<void> _loadMarkers() async {
@@ -76,11 +83,66 @@ class _ReusableTrashMapState extends State<ReusableTrashMap> {
       'assets/waste_data.json',
       context,
     );
+    setState(() {
+      _allMarkers = markers;
+    });
+  }
 
-    if (mounted) {
+  void centerOnUser() {
+    if (_userLocation != null) {
+      _mapController.move(_userLocation!, 16);
+    }
+  }
+
+  Future<void> routeToNearestTrashcan() async {
+    if (_userLocation == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Kein Standort verfügbar')));
+      return;
+    }
+
+    final visible = widget.markerFilter?.call(_allMarkers) ?? _allMarkers;
+    if (visible.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Keine Mülleimer gefunden')));
+      return;
+    }
+
+    final distance = const Distance();
+    Marker? nearest;
+    double shortest = double.infinity;
+
+    for (final m in visible) {
+      final d = distance(_userLocation!, m.point);
+      if (d < shortest) {
+        shortest = d;
+        nearest = m;
+      }
+    }
+
+    if (nearest == null) return;
+
+    try {
+      final route = await RoutingService.fetchRoute(
+        start: _userLocation!,
+        end: nearest.point,
+        profile: 'foot-walking',
+      );
+
       setState(() {
-        _allMarkers = markers;
+        _routePoints = route;
       });
+
+      _mapController.move(nearest.point, 16);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Route geladen')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Fehler beim Laden der Route')),
+      );
     }
   }
 
@@ -146,6 +208,16 @@ class _ReusableTrashMapState extends State<ReusableTrashMap> {
           )
         else
           MarkerLayer(markers: visibleMarkers),
+        if (_routePoints.isNotEmpty)
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: _routePoints,
+                strokeWidth: 4,
+                color: Colors.blue,
+              ),
+            ],
+          ),
       ],
     );
   }
