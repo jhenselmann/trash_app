@@ -30,8 +30,6 @@ class HelpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final yellowHighlight = Colors.yellow.shade100;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Help & Support')),
       body: Padding(

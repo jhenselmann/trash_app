@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:trash_app/services/saved_trashcan_service.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
+import 'package:latlong2/latlong.dart';
+import 'package:trash_app/services/saved_trashcan_service.dart';
+import 'package:trash_app/widgets/trashcan_tile.dart';
+import 'package:provider/provider.dart';
+import 'package:trash_app/services/location_service.dart';
 
 class SavedTrashcansPage extends StatefulWidget {
-  const SavedTrashcansPage({super.key});
+  final LatLng? userLocation;
+
+  const SavedTrashcansPage({super.key, this.userLocation});
 
   @override
   State<SavedTrashcansPage> createState() => _SavedTrashcansPageState();
@@ -21,22 +26,21 @@ class _SavedTrashcansPageState extends State<SavedTrashcansPage> {
   }
 
   Future<void> _loadSavedTrashcans() async {
-    final allIds = await SavedTrashcanService.getSavedTrashcanIds();
-
+    final savedIds = await SavedTrashcanService.getSavedTrashcanIds();
     final jsonStr = await rootBundle.loadString('assets/waste_data.json');
     final data = json.decode(jsonStr);
-    final allFeatures = data['features'] as List;
-
+    final all = List<Map<String, dynamic>>.from(data['features']);
     final filtered =
-        allFeatures.where((item) => allIds.contains(item['id'])).toList();
+        all.where((item) => savedIds.contains(item['id'])).toList();
 
     setState(() {
-      _savedTrashcans = List<Map<String, dynamic>>.from(filtered);
+      _savedTrashcans = filtered;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final userLocation = context.watch<LocationService>().currentLocation;
     return Scaffold(
       appBar: AppBar(title: const Text('Saved Trashcans')),
       body:
@@ -46,34 +50,14 @@ class _SavedTrashcansPageState extends State<SavedTrashcansPage> {
                 itemCount: _savedTrashcans.length,
                 itemBuilder: (context, index) {
                   final item = _savedTrashcans[index];
-                  final coords = item['coordinates'];
-                  final types =
-                      item['wasteTypes']?.join(', ') ?? 'General waste';
-                  final form = item['wasteForm'];
-
-                  return ListTile(
-                    leading: Icon(_getIcon(form)),
-                    title: Text(form.toString().toUpperCase()),
-                    subtitle: Text(
-                      '📍 ${coords[1].toStringAsFixed(5)}, ${coords[0].toStringAsFixed(5)}\nTypes: $types',
-                    ),
-                    isThreeLine: true,
+                  return TrashcanTile(
+                    key: ValueKey(item['id']), // ← WICHTIG!
+                    item: item,
+                    userLocation: userLocation,
+                    onChanged: _loadSavedTrashcans,
                   );
                 },
               ),
     );
-  }
-
-  IconData _getIcon(String form) {
-    switch (form) {
-      case 'basket':
-        return Icons.delete_outline;
-      case 'container':
-        return Icons.inventory_2_rounded;
-      case 'centre':
-        return Icons.recycling;
-      default:
-        return Icons.help_outline;
-    }
   }
 }

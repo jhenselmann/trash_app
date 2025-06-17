@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:trash_app/screens/more.dart';
 import 'package:trash_app/screens/new_trashcan_screen.dart';
 import 'screens/trash_map_screen.dart';
+import 'package:provider/provider.dart';
+import 'services/location_service.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => LocationService())],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

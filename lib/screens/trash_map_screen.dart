@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:provider/provider.dart';
+import 'package:trash_app/screens/trashcan_list_screen.dart';
+import 'package:trash_app/services/location_service.dart';
 import '../widgets/reusable_trash_map.dart';
 import '../widgets/waste_type_list.dart';
 
@@ -202,6 +205,30 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
                 ),
               ),
             ),
+
+          Positioned(
+            bottom: 100,
+            right: 20,
+            child: FloatingActionButton(
+              heroTag: 'list',
+              backgroundColor: Colors.white,
+              shape: const CircleBorder(),
+              child: const Icon(size: 35, Icons.list, color: Colors.black),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => TrashcanListScreen(
+                          userLocation:
+                              context.read<LocationService>().currentLocation,
+                          activeFilters: _activeWasteFilters,
+                        ),
+                  ),
+                );
+              },
+            ),
+          ),
 
           // Dynamischer Button unten rechts
           Positioned(

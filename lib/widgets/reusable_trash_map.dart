@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:location/location.dart';
 import '../data/waste_marker_loader.dart';
 import '../services/routing_service.dart';
+import 'package:provider/provider.dart';
+import '../services/location_service.dart';
 
 typedef MarkerFilter = List<Marker> Function(List<Marker> all);
 
@@ -31,66 +32,21 @@ class ReusableTrashMap extends StatefulWidget {
 
 class ReusableTrashMapState extends State<ReusableTrashMap> {
   final MapController _mapController = MapController();
-  final Location _location = Location();
-  StreamSubscription<LocationData>? _locationSubscription;
-
-  LatLng? _userLocation;
   List<LatLng> _routePoints = [];
   bool _routeActive = false;
   double? _routeDistanceMeters;
 
-  bool get routeActive => _routeActive;
-  double? get routeDistanceMeters => _routeDistanceMeters;
-
   List<Marker> _allMarkers = [];
 
+  bool get routeActive => _routeActive;
+  double? get routeDistanceMeters => _routeDistanceMeters;
   List<Marker> get allMarkers => _allMarkers;
-  LatLng? get userLocation => _userLocation;
 
   @override
   void initState() {
     super.initState();
-    _initLocation();
     _loadMarkers();
     widget.onMapControllerReady?.call(_mapController);
-  }
-
-  @override
-  void dispose() {
-    _locationSubscription?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _initLocation() async {
-    bool serviceEnabled = await _location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await _location.requestService();
-      if (!serviceEnabled) return;
-    }
-
-    PermissionStatus permissionGranted = await _location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await _location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) return;
-    }
-
-    _locationSubscription = _location.onLocationChanged.listen((newLoc) {
-      final loc = LatLng(newLoc.latitude!, newLoc.longitude!);
-      if (!mounted) return;
-      setState(() {
-        _userLocation = loc;
-      });
-      widget.onUserLocationUpdate(loc);
-    });
-
-    // fallback falls Location nicht liefert
-    await Future.delayed(const Duration(seconds: 2));
-    if (_userLocation == null && mounted) {
-      setState(() {
-        _userLocation = LatLng(48.137154, 11.576124); // München
-      });
-      widget.onUserLocationUpdate(_userLocation!);
-    }
   }
 
   Future<void> _loadMarkers() async {
@@ -105,13 +61,15 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
   }
 
   void centerOnUser() {
-    if (_userLocation != null) {
-      _mapController.move(_userLocation!, 16);
+    final userLocation = context.read<LocationService>().currentLocation;
+    if (userLocation != null) {
+      _mapController.move(userLocation, 16);
     }
   }
 
   Future<void> routeToNearestTrashcan() async {
-    if (_userLocation == null) {
+    final userLocation = context.read<LocationService>().currentLocation;
+    if (userLocation == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('No location found')));
@@ -131,7 +89,7 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
     double shortest = double.infinity;
 
     for (final m in visible) {
-      final d = distance(_userLocation!, m.point);
+      final d = distance(userLocation, m.point);
       if (d < shortest) {
         shortest = d;
         nearest = m;
@@ -142,7 +100,8 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
 
     try {
       final route = await RoutingService.fetchRoute(
-        start: _userLocation!,
+        start: userLocation,
+
         end: nearest.point,
         profile: 'foot-walking',
       );
@@ -152,11 +111,7 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
       setState(() {
         _routePoints = route;
         _routeActive = true;
-        _routeDistanceMeters = const Distance().as(
-          LengthUnit.Meter,
-          _userLocation!,
-          nearest!.point,
-        );
+        _routeDistanceMeters = distance(userLocation, nearest!.point);
       });
 
       _mapController.move(nearest.point, 16);
@@ -181,13 +136,14 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
 
   @override
   Widget build(BuildContext context) {
+    final userLocation = context.watch<LocationService>().currentLocation;
     final visibleMarkers =
         widget.markerFilter?.call(_allMarkers) ?? _allMarkers;
 
     return FlutterMap(
       mapController: _mapController,
       options: MapOptions(
-        initialCenter: _userLocation ?? LatLng(48.137154, 11.576124),
+        initialCenter: userLocation ?? LatLng(48.137154, 11.576124),
         initialZoom: widget.initialZoom,
       ),
       children: [
@@ -195,11 +151,11 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.trashApp',
         ),
-        if (_userLocation != null)
+        if (userLocation != null)
           MarkerLayer(
             markers: [
               Marker(
-                point: _userLocation!,
+                point: userLocation,
                 width: 20,
                 height: 20,
                 child: Container(
