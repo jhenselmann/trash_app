@@ -68,19 +68,40 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 1; //Merkt sich welcher Tab aktiv ist
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey();
+  int _selectedIndex = 1;
 
-  final List<Widget> _pages = [
-    //Diese 3 Seiten haben wir
-    NewTrashcanScreen(),
-    TrashMapScreen(),
-    MorePage(),
-  ];
+  void _navigateToRoot(String route) {
+    _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      route,
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: Navigator(
+        key: _navigatorKey,
+        initialRoute: '/map',
+        onGenerateRoute: (RouteSettings settings) {
+          Widget page;
+          switch (settings.name) {
+            case '/new':
+              page = const NewTrashcanScreen();
+              break;
+            case '/map':
+              page = const TrashMapScreen();
+              break;
+            case '/more':
+              page = const MorePage();
+              break;
+            default:
+              page = const TrashMapScreen();
+          }
+          return MaterialPageRoute(builder: (_) => page, settings: settings);
+        },
+      ),
       bottomNavigationBar: Container(
         height: 100,
         decoration: BoxDecoration(
@@ -99,14 +120,14 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Stack(
           children: [
+            // 🔶 Das gelbe Blob-Highlight
             AnimatedAlign(
               alignment: _getAlignmentForIndex(_selectedIndex),
               duration: const Duration(milliseconds: 200),
-              curve: Curves.decelerate,
+              curve: Curves.easeOut,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final double itemWidth = (constraints.maxWidth / 3) - 16;
-
                   return Container(
                     width: itemWidth,
                     height: 60,
@@ -125,11 +146,12 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
 
+            // 🔘 Die eigentlichen Buttons
             Row(
               children: [
-                _buildNavItem(icon: Icons.add_location, label: 'New', index: 0),
-                _buildNavItem(icon: Icons.map, label: 'Map', index: 1),
-                _buildNavItem(icon: Icons.more_horiz, label: 'More', index: 2),
+                _buildNavItem(Icons.add_location, 'New', 0, '/new'),
+                _buildNavItem(Icons.map, 'Map', 1, '/map'),
+                _buildNavItem(Icons.more_horiz, 'More', 2, '/more'),
               ],
             ),
           ],
@@ -138,25 +160,23 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required int index,
-  }) {
+  Widget _buildNavItem(IconData icon, String label, int index, String route) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          setState(() {
-            _selectedIndex = index;
-          });
+          setState(() => _selectedIndex = index);
+          _navigateToRoot(route);
         },
         child: Container(
           margin: const EdgeInsets.fromLTRB(8, 8, 8, 25),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(50)),
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(50)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [Icon(icon), Text(label)],
+            children: [
+              Icon(icon, color: Colors.black),
+              Text(label, style: const TextStyle(color: Colors.black)),
+            ],
           ),
         ),
       ),

@@ -34,8 +34,9 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
         _mapKey.currentState?.centerOnPoint(widget.focusTrashcan!);
         // 2. Optional: direkt Route anzeigen (wenn routeToFocus = true)
         if (widget.routeToFocus) {
-          _mapKey.currentState?.routeToPoint(widget.focusTrashcan!);
-          setState(() {});
+          _mapKey.currentState?.routeToPoint(widget.focusTrashcan!).then((_) {
+            setState(() {}); // jetzt weiß die UI: Route ist aktiv
+          });
         }
       }
     });
