@@ -64,7 +64,7 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text("Keep going!"),
+                          child: const Text("Confirm"),
                         ),
                       ),
                       const SizedBox(width: 12),
