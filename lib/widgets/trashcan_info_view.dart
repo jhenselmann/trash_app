@@ -37,20 +37,6 @@ class TrashcanInfoView extends StatelessWidget {
             : wasteTypes
                 .map((w) => Text("• ${wasteTypeLabels[w] ?? w}"))
                 .toList()),
-
-        if (addedBy != null) ...[
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Icon(Icons.favorite, color: Colors.redAccent, size: 18),
-              const SizedBox(width: 6),
-              Text(
-                'Added by $addedBy',
-                style: const TextStyle(color: Colors.black54),
-              ),
-            ],
-          ),
-        ],
       ],
     );
   }

@@ -85,25 +85,6 @@ class TrashcanDetailScreen extends StatelessWidget {
                   distance != null ? _formatDistance(distance) : '–',
                   style: const TextStyle(color: Colors.black54),
                 ),
-
-                // ❤️ Added by section
-                if (addedBy != null) ...[
-                  const Divider(height: 32),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.favorite,
-                        color: Colors.redAccent,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Added by $addedBy',
-                        style: const TextStyle(color: Colors.black54),
-                      ),
-                    ],
-                  ),
-                ],
               ],
             ),
           ),
