@@ -4,11 +4,18 @@ import 'package:trash_app/screens/new_trashcan_screen.dart';
 import 'screens/trash_map_screen.dart';
 import 'package:provider/provider.dart';
 import 'services/location_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => LocationService())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => LocationService()),
+        // Add other providers here if needed
+      ],
       child: const MyApp(),
     ),
   );

@@ -137,12 +137,12 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
       _mapController.move(nearest.point, 16);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Route geladen')));
+      ).showSnackBar(const SnackBar(content: Text('Route loaded')));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fehler beim Laden der Route')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Error loading the route')));
     }
   }
 

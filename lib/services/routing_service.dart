@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class RoutingService {
-  static const String _apiKey = '';
+  static String get _apiKey => dotenv.env['ORS_API_KEY'] ?? '';
   static const String _baseUrl =
       'https://api.openrouteservice.org/v2/directions';
 
