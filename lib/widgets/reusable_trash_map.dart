@@ -7,6 +7,7 @@ import '../data/waste_marker_loader.dart';
 import '../services/routing_service.dart';
 import 'package:provider/provider.dart';
 import '../services/location_service.dart';
+import '../providers/trashcan_provider.dart';
 
 typedef MarkerFilter = List<Marker> Function(List<Marker> all);
 
@@ -35,7 +36,6 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
   List<LatLng> _routePoints = [];
   bool _routeActive = false;
   double? _routeDistanceMeters;
-  List<Marker> _allMarkers = [];
 
   bool get routeActive => _routeActive;
   double? get routeDistanceMeters => _routeDistanceMeters;
@@ -43,12 +43,19 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
   @override
   void initState() {
     super.initState();
-    _loadMarkers();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TrashcanProvider>().loadMarkers(context);
+    });
+
     widget.onMapControllerReady?.call(_mapController);
   }
 
   void centerOnPoint(LatLng position) {
     _mapController.move(position, 16);
+  }
+
+  LatLng? getMapCenter() {
+    return _mapController.camera.center;
   }
 
   Future<void> routeToPoint(LatLng target) async {
@@ -78,15 +85,6 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
     }
   }
 
-  Future<void> _loadMarkers() async {
-    final markers = await WasteMarkerLoader.loadMarkersFromJson(
-      'assets/waste_data.json',
-      context,
-    );
-    if (!mounted) return;
-    setState(() => _allMarkers = markers);
-  }
-
   void centerOnUser() {
     final userLocation = context.read<LocationService>().currentLocation;
     if (userLocation != null) {
@@ -102,7 +100,10 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
       ).showSnackBar(const SnackBar(content: Text('Standort nicht verfügbar')));
       return;
     }
-    final visible = widget.markerFilter?.call(_allMarkers) ?? _allMarkers;
+    final provider = context.read<TrashcanProvider>();
+    final visible =
+        widget.markerFilter?.call(provider.markers) ?? provider.markers;
+
     if (visible.isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -157,8 +158,9 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
   @override
   Widget build(BuildContext context) {
     final userLocation = context.watch<LocationService>().currentLocation;
+    final provider = context.watch<TrashcanProvider>();
     final visibleMarkers =
-        widget.markerFilter?.call(_allMarkers) ?? _allMarkers;
+        widget.markerFilter?.call(provider.markers) ?? provider.markers;
 
     return FlutterMap(
       mapController: _mapController,

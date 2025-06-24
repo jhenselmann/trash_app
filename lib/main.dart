@@ -5,6 +5,7 @@ import 'screens/trash_map_screen.dart';
 import 'package:provider/provider.dart';
 import 'services/location_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'providers/trashcan_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LocationService()),
+        ChangeNotifierProvider(create: (_) => TrashcanProvider()),
         // Add other providers here if needed
       ],
       child: const MyApp(),

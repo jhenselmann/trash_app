@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:trash_app/screens/addtrashcan/confirm_trash_screen.dart';
 import '../widgets/reusable_trash_map.dart';
 import '../widgets/LocationPin.dart';
+import 'package:provider/provider.dart';
+import 'package:trash_app/providers/trashcan_provider.dart';
+import '../services/user_trashcan_service.dart';
 
 class NewTrashcanScreen extends StatefulWidget {
   const NewTrashcanScreen({super.key});
@@ -13,19 +15,23 @@ class NewTrashcanScreen extends StatefulWidget {
 }
 
 class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
-  LatLng _userLocation = LatLng(52.52, 13.405);
+  final GlobalKey<ReusableTrashMapState> _mapKey = GlobalKey();
   bool _showTrashMarkers = true;
-  MapController? _mapController;
 
   Future<void> _onSelectLocation() async {
+    final selectedLocation = _mapKey.currentState?.getMapCenter();
+    if (selectedLocation == null) return;
+
     final confirmed = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ConfirmTrashcanScreen(location: _userLocation),
+        builder: (_) => ConfirmTrashcanScreen(location: selectedLocation),
       ),
     );
 
-    if (confirmed == true && context.mounted) {
+    if (confirmed is String && context.mounted) {
+      final newId = confirmed;
+
       showDialog(
         context: context,
         builder:
@@ -70,13 +76,19 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             Navigator.of(ctx).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Submission undone."),
-                              ),
-                            );
+                            await UserTrashcanService.deleteUserTrashcan(newId);
+                            if (context.mounted) {
+                              context.read<TrashcanProvider>().loadMarkers(
+                                context,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Submission undone."),
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red[400],
@@ -95,12 +107,8 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
               ),
             ),
       );
-    }
-  }
 
-  void _moveToUser() {
-    if (_mapController != null) {
-      _mapController!.move(_userLocation, 16);
+      context.read<TrashcanProvider>().loadMarkers(context);
     }
   }
 
@@ -110,17 +118,14 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
       body: Stack(
         children: [
           ReusableTrashMap(
-            onUserLocationUpdate: (loc) {
-              _userLocation = loc;
-            },
+            onUserLocationUpdate: (_) {},
+            key: _mapKey,
             enableClustering: true,
             markerFilter: _showTrashMarkers ? null : (_) => [],
-            onMapControllerReady: (controller) {
-              _mapController = controller;
-            },
-            initialZoom: 18,
           ),
           const Center(child: Locationpin()),
+
+          // Select location
           Positioned(
             bottom: 20,
             left: 20,
@@ -135,18 +140,23 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
               child: const Text('Select Location'),
             ),
           ),
+
+          // Center on user
           Positioned(
             top: 40,
             right: 20,
             child: FloatingActionButton(
               heroTag: 'centerOnUser',
-              onPressed: _moveToUser,
+              onPressed: () {
+                _mapKey.currentState?.centerOnUser();
+              },
               backgroundColor: Colors.white,
               mini: true,
               child: const Icon(Icons.my_location, color: Colors.black),
             ),
           ),
 
+          // Toggle markers
           Positioned(
             top: 40,
             left: 20,
