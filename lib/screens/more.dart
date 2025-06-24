@@ -36,18 +36,6 @@ class MorePage extends StatelessWidget {
           ),
           _buildListTile(
             context,
-            icon: Icons.delete,
-            title: 'My Trashcans',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('My Trashcans are not implemented yet. '),
-                ),
-              );
-            },
-          ),
-          _buildListTile(
-            context,
             icon: Icons.settings,
             title: 'Settings',
             onTap: () {
