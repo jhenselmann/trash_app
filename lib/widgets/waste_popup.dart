@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:trash_app/widgets/trashcan_info_view.dart';
 import '../data/waste_labels.dart';
 import '../services/saved_trashcan_service.dart';
 
@@ -8,6 +9,7 @@ class WastePopup extends StatefulWidget {
   final LatLng location;
   final List<String> wasteTypes;
   final String wasteForm;
+  final String? addedBy;
 
   const WastePopup({
     super.key,
@@ -15,6 +17,7 @@ class WastePopup extends StatefulWidget {
     required this.location,
     required this.wasteTypes,
     required this.wasteForm,
+    this.addedBy,
   });
 
   @override
@@ -75,22 +78,18 @@ class _WastePopupState extends State<WastePopup> {
           ),
         ],
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '📍 Location: ${widget.location.latitude.toStringAsFixed(5)}, ${widget.location.longitude.toStringAsFixed(5)}',
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+        child: SingleChildScrollView(
+          child: TrashcanInfoView(
+            location: widget.location,
+            wasteTypes: widget.wasteTypes,
+            wasteForm: widget.wasteForm,
+            addedBy: widget.addedBy, // ← Wichtig
           ),
-          const SizedBox(height: 12),
-          const Text('Trash Types:'),
-          const SizedBox(height: 4),
-          ...(widget.wasteTypes.isEmpty
-              ? [const Text("• General Waste")]
-              : widget.wasteTypes
-                  .map((w) => Text("• ${wasteTypeLabels[w] ?? w}"))
-                  .toList()),
-        ],
+        ),
       ),
+
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),

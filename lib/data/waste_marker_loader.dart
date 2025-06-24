@@ -72,6 +72,7 @@ class WasteMarkerLoader {
                       location: latLng,
                       wasteTypes: List<String>.from(wasteTypes),
                       wasteForm: wasteForm,
+                      addedBy: item['addedBy'],
                     ),
               );
             },
