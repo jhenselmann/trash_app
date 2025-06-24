@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:trash_app/widgets/trashcan_info_view.dart';
-import '../data/waste_labels.dart';
 import '../services/saved_trashcan_service.dart';
 
 class WastePopup extends StatefulWidget {

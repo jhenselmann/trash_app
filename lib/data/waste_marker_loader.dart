@@ -47,7 +47,6 @@ class WasteMarkerLoader {
       final wasteTypes = item['wasteTypes'] ?? [];
       final wasteForm = item['wasteForm'] ?? 'unknown';
       final id = item['id'] ?? '';
-      final addedByUser = item['addedByUser'] == true;
 
       if (wasteForm == 'unknown') continue;
 

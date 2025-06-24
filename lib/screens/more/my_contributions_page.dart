@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trash_app/services/user_trashcan_service.dart';
 import 'package:trash_app/data/trashcan.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:trash_app/widgets/trashcan_tile.dart';
 
 class MyContributionsPage extends StatefulWidget {
