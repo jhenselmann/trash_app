@@ -47,14 +47,11 @@ class WasteMarkerLoader {
       final wasteTypes = item['wasteTypes'] ?? [];
       final wasteForm = item['wasteForm'] ?? 'unknown';
       final id = item['id'] ?? '';
-      final addedByUser = item['addedByUser'] == true;
 
       if (wasteForm == 'unknown') continue;
 
       final latLng = LatLng(coords[1], coords[0]);
       final isSaved = await SavedTrashcanService.isSaved(id);
-
-      print('ADDING MARKER: $id @ $latLng, user: $addedByUser');
 
       markers.add(
         Marker(
@@ -72,6 +69,7 @@ class WasteMarkerLoader {
                       location: latLng,
                       wasteTypes: List<String>.from(wasteTypes),
                       wasteForm: wasteForm,
+                      addedBy: item['addedBy'],
                     ),
               );
             },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:trash_app/services/user_trashcan_service.dart';
 import 'dart:convert';
 
 import 'package:trash_app/widgets/trashcan_tile.dart';
@@ -36,18 +37,34 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
     final data = json.decode(jsonStr);
     final features = List<Map<String, dynamic>>.from(data['features']);
 
-    final Distance distance = const Distance();
-    final userLoc = widget.userLocation;
+    final userTrashcans = await UserTrashcanService.loadUserTrashcans();
 
+    final userTrashcanMaps =
+        userTrashcans
+            .map(
+              (t) => {
+                'id': t.id,
+                'coordinates': [t.longitude, t.latitude],
+                'wasteTypes': t.wasteTypes,
+                'wasteForm': t.wasteForm,
+                'addedBy': t.addedBy ?? 'You',
+              },
+            )
+            .toList();
+
+    final combined = [...features, ...userTrashcanMaps];
+
+    final userLoc = widget.userLocation;
     if (userLoc != null) {
-      features.sort((a, b) {
+      final dist = const Distance();
+      combined.sort((a, b) {
         final aCoord = LatLng(a['coordinates'][1], a['coordinates'][0]);
         final bCoord = LatLng(b['coordinates'][1], b['coordinates'][0]);
-        return distance(userLoc, aCoord).compareTo(distance(userLoc, bCoord));
+        return dist(userLoc, aCoord).compareTo(dist(userLoc, bCoord));
       });
     }
 
-    _allTrashcans = features;
+    _allTrashcans = combined;
     _updateVisibleList();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trash_app/screens/more/help.dart';
+import 'package:trash_app/screens/more/my_contributions_page.dart';
 import 'package:trash_app/screens/more/profile/profile.dart';
 import 'package:trash_app/screens/more/saved_trashcans_page.dart'; // hinzufügen
 

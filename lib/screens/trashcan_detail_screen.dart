@@ -21,6 +21,7 @@ class TrashcanDetailScreen extends StatelessWidget {
     final coords = item['coordinates'];
     final types = List<String>.from(item['wasteTypes'] ?? []);
     final form = item['wasteForm'];
+    final addedBy = item['addedBy'] as String?;
     final userLocation = context.watch<LocationService>().currentLocation;
 
     double? distance;
@@ -30,34 +31,114 @@ class TrashcanDetailScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Trashcan Details')),
+      appBar: AppBar(
+        title: const Text('Trashcan Details'),
+        centerTitle: true,
+        backgroundColor: Colors.yellow.shade50,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Type: ${form.toUpperCase()}',
-              style: Theme.of(context).textTheme.titleLarge,
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    _iconForForm(form),
+                    const SizedBox(width: 12),
+                    Text(
+                      _titleForForm(form),
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  '📍 Location:',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${coords[1].toStringAsFixed(5)}, ${coords[0].toStringAsFixed(5)}',
+                ),
+                const Divider(height: 24),
+                Text(
+                  '♻️ Waste Types:',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 4),
+                ...types.map((type) => Text('- $type')),
+                const Divider(height: 24),
+                Text(
+                  '📏 Distance:',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  distance != null ? _formatDistance(distance) : '–',
+                  style: const TextStyle(color: Colors.black54),
+                ),
+
+                // ❤️ Added by section
+                if (addedBy != null) ...[
+                  const Divider(height: 32),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.favorite,
+                        color: Colors.redAccent,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Added by $addedBy',
+                        style: const TextStyle(color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Location: ${coords[1].toStringAsFixed(5)}, ${coords[0].toStringAsFixed(5)}',
-            ),
-            const SizedBox(height: 12),
-            if (distance != null)
-              Text(
-                'Entfernung: ${_formatDistance(distance)}',
-                style: const TextStyle(color: Colors.black54),
-              ),
-            if (distance == null) const Text('Entfernung: –'),
-            const SizedBox(height: 12),
-            Text('Waste Types:'),
-            const SizedBox(height: 4),
-            ...types.map((type) => Text('- $type')),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  Icon _iconForForm(String form) {
+    switch (form) {
+      case 'basket':
+        return const Icon(Icons.delete_outline, size: 28, color: Colors.grey);
+      case 'container':
+        return const Icon(
+          Icons.local_shipping_outlined,
+          size: 28,
+          color: Colors.blueGrey,
+        );
+      case 'centre':
+        return const Icon(Icons.recycling, size: 28, color: Colors.green);
+      default:
+        return const Icon(Icons.help_outline, size: 28);
+    }
+  }
+
+  String _titleForForm(String form) {
+    switch (form) {
+      case 'basket':
+        return 'Trash Can';
+      case 'container':
+        return 'Container';
+      case 'centre':
+        return 'Recycling Center';
+      default:
+        return 'Unknown';
+    }
   }
 }
