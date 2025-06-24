@@ -4,6 +4,11 @@ PODS:
     - Flutter
   - location (0.0.1):
     - Flutter
+  - PostHog (3.28.0)
+  - posthog_flutter (0.0.1):
+    - Flutter
+    - FlutterMacOS
+    - PostHog (~> 3.22)
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -14,8 +19,13 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
   - location (from `.symlinks/plugins/location/ios`)
+  - posthog_flutter (from `.symlinks/plugins/posthog_flutter/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
+
+SPEC REPOS:
+  trunk:
+    - PostHog
 
 EXTERNAL SOURCES:
   Flutter:
@@ -24,6 +34,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/geocoding_ios/ios"
   location:
     :path: ".symlinks/plugins/location/ios"
+  posthog_flutter:
+    :path: ".symlinks/plugins/posthog_flutter/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   url_launcher_ios:
@@ -33,6 +45,8 @@ SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   geocoding_ios: bcbdaa6bddd7d3129c9bcb8acddc5d8778689768
   location: 155caecf9da4f280ab5fe4a55f94ceccfab838f8
+  PostHog: 45c705858f2dca473c5e6b57fcfaffffd63fea20
+  posthog_flutter: 631ab870f7daf1ed190deeb2414eb3e347445f37
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
 
