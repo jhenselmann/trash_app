@@ -54,6 +54,10 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
     _mapController.move(position, 16);
   }
 
+  LatLng? getMapCenter() {
+    return _mapController.camera.center;
+  }
+
   Future<void> routeToPoint(LatLng target) async {
     final userLoc = context.read<LocationService>().currentLocation;
     if (userLoc == null) {
