@@ -40,12 +40,12 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
                   const Icon(Icons.eco, color: Colors.green, size: 48),
                   const SizedBox(height: 16),
                   const Text(
-                    "Thank you!",
+                    "Trashcan added!",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    "Your contribution makes a real difference 🌍\n\nThanks to people like you, this app can grow – and the planet gets a little cleaner.",
+                    "The trashcan got added. Thank you. ",
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
