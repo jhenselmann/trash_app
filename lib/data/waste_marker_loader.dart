@@ -54,8 +54,6 @@ class WasteMarkerLoader {
       final latLng = LatLng(coords[1], coords[0]);
       final isSaved = await SavedTrashcanService.isSaved(id);
 
-      print('ADDING MARKER: $id @ $latLng, user: $addedByUser');
-
       markers.add(
         Marker(
           key: ValueKey(id),

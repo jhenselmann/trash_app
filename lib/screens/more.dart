@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trash_app/screens/more/help.dart';
+import 'package:trash_app/screens/more/my_contributions_page.dart';
 import 'package:trash_app/screens/more/profile/profile.dart';
 import 'package:trash_app/screens/more/saved_trashcans_page.dart'; // hinzufügen
 
@@ -25,6 +26,17 @@ class MorePage extends StatelessWidget {
           ),
           _buildListTile(
             context,
+            icon: Icons.emoji_events,
+            title: 'My Impact',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MyContributionsPage()),
+              );
+            },
+          ),
+          _buildListTile(
+            context,
             icon: Icons.bookmark,
             title: 'Saved Trashcans',
             onTap: () {
@@ -34,18 +46,7 @@ class MorePage extends StatelessWidget {
               );
             },
           ),
-          _buildListTile(
-            context,
-            icon: Icons.delete,
-            title: 'My Trashcans',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('My Trashcans are not implemented yet. '),
-                ),
-              );
-            },
-          ),
+
           _buildListTile(
             context,
             icon: Icons.settings,

@@ -190,13 +190,6 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                               await UserTrashcanService.addUserTrashcan(
                                 newTrashcan,
                               );
-
-                              final list =
-                                  await UserTrashcanService.loadUserTrashcans();
-                              print(
-                                'User Trashcans: ${list.map((e) => e.toJson())}',
-                              );
-
                               if (context.mounted) {
                                 Navigator.pop(context, id);
                               }
