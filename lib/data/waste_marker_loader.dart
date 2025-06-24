@@ -5,6 +5,7 @@ import '../widgets/waste_popup.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../services/saved_trashcan_service.dart';
+import '../services/user_trashcan_service.dart';
 
 class WasteMarkerLoader {
   static Widget _buildMarkerIcon(String wasteForm, bool isSaved) {
@@ -26,35 +27,38 @@ class WasteMarkerLoader {
     }
   }
 
-  static Future<List<Marker>> loadMarkersFromJson(
-    String assetPath,
-    BuildContext context,
-  ) async {
-    final jsonStr = await rootBundle.loadString(assetPath);
-    final data = json.decode(jsonStr);
-
+  static Future<List<Marker>> loadMarkers(BuildContext context) async {
     final List<Marker> markers = [];
 
-    for (var item in data['features']) {
+    // 1. Original aus JSON laden
+    final jsonStr = await rootBundle.loadString('assets/waste_data.json');
+    final data = json.decode(jsonStr);
+    final originalItems = List<Map<String, dynamic>>.from(data['features']);
+
+    // 2. User-Trashcans laden
+    final userTrashcans = await UserTrashcanService.loadUserTrashcans();
+    final userItems = userTrashcans.map((e) => e.toJson()).toList();
+
+    // 3. Kombinieren
+    final combined = [...originalItems, ...userItems];
+
+    for (var item in combined) {
       final coords = item['coordinates'];
       final wasteTypes = item['wasteTypes'] ?? [];
       final wasteForm = item['wasteForm'] ?? 'unknown';
       final id = item['id'] ?? '';
+      final addedByUser = item['addedByUser'] == true;
 
       if (wasteForm == 'unknown') continue;
 
       final latLng = LatLng(coords[1], coords[0]);
-
       final isSaved = await SavedTrashcanService.isSaved(id);
+
+      print('ADDING MARKER: $id @ $latLng, user: $addedByUser');
 
       markers.add(
         Marker(
-          key: ValueKey({
-            'id': id,
-            'wasteTypes': wasteTypes,
-            'wasteForm': wasteForm,
-            'saved': isSaved,
-          }),
+          key: ValueKey(id),
           point: latLng,
           width: 30,
           height: 30,

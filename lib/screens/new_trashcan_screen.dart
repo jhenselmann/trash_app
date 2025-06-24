@@ -4,6 +4,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:trash_app/screens/addtrashcan/confirm_trash_screen.dart';
 import '../widgets/reusable_trash_map.dart';
 import '../widgets/LocationPin.dart';
+import 'package:provider/provider.dart';
+import 'package:trash_app/providers/trashcan_provider.dart';
+import 'package:flutter_map/flutter_map.dart';
+import '../services/user_trashcan_service.dart';
 
 class NewTrashcanScreen extends StatefulWidget {
   const NewTrashcanScreen({super.key});
@@ -13,19 +17,23 @@ class NewTrashcanScreen extends StatefulWidget {
 }
 
 class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
-  LatLng _userLocation = LatLng(52.52, 13.405);
+  LatLng? _userLocation;
   bool _showTrashMarkers = true;
   MapController? _mapController;
 
   Future<void> _onSelectLocation() async {
+    final selectedLocation = _mapController!.camera.center;
+
     final confirmed = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ConfirmTrashcanScreen(location: _userLocation),
+        builder: (_) => ConfirmTrashcanScreen(location: selectedLocation),
       ),
     );
 
-    if (confirmed == true && context.mounted) {
+    if (confirmed is String && context.mounted) {
+      final newId = confirmed;
+
       showDialog(
         context: context,
         builder:
@@ -70,13 +78,19 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             Navigator.of(ctx).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Submission undone."),
-                              ),
-                            );
+                            await UserTrashcanService.deleteUserTrashcan(newId);
+                            if (context.mounted) {
+                              context.read<TrashcanProvider>().loadMarkers(
+                                context,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Submission undone."),
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red[400],
@@ -95,12 +109,14 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
               ),
             ),
       );
+
+      context.read<TrashcanProvider>().loadMarkers(context);
     }
   }
 
   void _moveToUser() {
-    if (_mapController != null) {
-      _mapController!.move(_userLocation, 16);
+    if (_mapController != null && _userLocation != null) {
+      _mapController!.move(_userLocation!, 16);
     }
   }
 
@@ -111,7 +127,12 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
         children: [
           ReusableTrashMap(
             onUserLocationUpdate: (loc) {
-              _userLocation = loc;
+              if (_userLocation == null) {
+                setState(() {
+                  _userLocation = loc;
+                });
+                _mapController?.move(loc, 18);
+              }
             },
             enableClustering: true,
             markerFilter: _showTrashMarkers ? null : (_) => [],
