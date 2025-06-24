@@ -46,19 +46,6 @@ class MorePage extends StatelessWidget {
               );
             },
           ),
-
-          _buildListTile(
-            context,
-            icon: Icons.settings,
-            title: 'Settings',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Settings are not implemented yet. '),
-                ),
-              );
-            },
-          ),
           _buildListTile(
             context,
             icon: Icons.help_outline,
