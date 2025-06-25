@@ -83,8 +83,9 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
   @override
   Widget build(BuildContext context) {
     final showFormError = _selectedForm == null;
-    final showWasteTypeError = _selectedWasteTypes.isEmpty;
-    final isValid = !showFormError && !showWasteTypeError;
+    final showWasteTypeError =
+        _selectedForm != null && _selectedWasteTypes.isEmpty;
+    final isValid = _selectedForm != null && _selectedWasteTypes.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Confirm Location")),
@@ -95,6 +96,7 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
             Expanded(
               child: ListView(
                 children: [
+                  // Step 1: Form selection
                   const Text(
                     "Select Type of Trashcan",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -117,32 +119,41 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                       ),
                     ),
                   const SizedBox(height: 20),
-                  const Text(
-                    "What can be disposed here?",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children:
-                        wasteTypeLabels.entries.map((entry) {
-                          return FilterChip(
-                            label: Text(entry.value),
-                            selected: _selectedWasteTypes.contains(entry.key),
-                            onSelected: (_) => _toggleWasteType(entry.key),
-                          );
-                        }).toList(),
-                  ),
-                  if (showWasteTypeError)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        "Please select at least one waste type.",
-                        style: TextStyle(color: Colors.red),
+
+                  // Step 2: Waste type selection (only shown after form is selected)
+                  if (_selectedForm != null) ...[
+                    const Text(
+                      "What can be disposed here?",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children:
+                          wasteTypeLabels.entries.map((entry) {
+                            return FilterChip(
+                              label: Text(entry.value),
+                              selected: _selectedWasteTypes.contains(entry.key),
+                              onSelected: (_) => _toggleWasteType(entry.key),
+                            );
+                          }).toList(),
+                    ),
+                    if (showWasteTypeError)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Text(
+                          "Please select at least one waste type.",
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Location info (always visible)
                   const Text(
                     "Location",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -179,77 +190,73 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                 ],
               ),
             ),
-            Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      Posthog().capture(eventName: 'trashcan_add_attempt');
 
-                      final isValid =
-                          _selectedForm != null &&
-                          _selectedWasteTypes.isNotEmpty;
+            // Step 3: Add button only appears when both form and waste are selected
+            if (_selectedForm != null && _selectedWasteTypes.isNotEmpty)
+              Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Posthog().capture(eventName: 'trashcan_add_attempt');
 
-                      if (!isValid) {
-                        Posthog().capture(eventName: 'form_validation_error');
-                        setState(() {
-                          _formError = _selectedForm == null;
-                          _wasteTypeError = _selectedWasteTypes.isEmpty;
-                        });
-                        return;
-                      }
+                        if (!isValid) {
+                          Posthog().capture(eventName: 'form_validation_error');
+                          setState(() {
+                            _formError = _selectedForm == null;
+                            _wasteTypeError = _selectedWasteTypes.isEmpty;
+                          });
+                          return;
+                        }
 
-                      Posthog().capture(eventName: 'trashcan_add_success');
+                        Posthog().capture(eventName: 'trashcan_add_success');
 
-                      final id =
-                          'user/${DateTime.now().millisecondsSinceEpoch}';
-                      final newTrashcan = Trashcan(
-                        id: id,
-                        coordinates: [
-                          widget.location.longitude,
-                          widget.location.latitude,
-                        ],
-                        wasteTypes: _selectedWasteTypes.toList(),
-                        wasteForm: _selectedForm!,
-                        addedByUser: true,
-                      );
+                        final id =
+                            'user/${DateTime.now().millisecondsSinceEpoch}';
+                        final newTrashcan = Trashcan(
+                          id: id,
+                          coordinates: [
+                            widget.location.longitude,
+                            widget.location.latitude,
+                          ],
+                          wasteTypes: _selectedWasteTypes.toList(),
+                          wasteForm: _selectedForm!,
+                          addedByUser: true,
+                        );
 
-                      await UserTrashcanService.addUserTrashcan(newTrashcan);
+                        await UserTrashcanService.addUserTrashcan(newTrashcan);
 
-                      if (context.mounted) {
-                        Navigator.pop(context, id);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          (_selectedForm != null &&
-                                  _selectedWasteTypes.isNotEmpty)
-                              ? Colors.yellow
-                              : Colors.grey.shade400, // Farbe je nach Validität
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                        if (context.mounted) {
+                          Navigator.pop(context, id);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text('Add Trashcan'),
                     ),
-                    child: const Text('Add Trashcan'),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                ],
+              ),
 
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Cancel'),
-                  ),
+            // Cancel button is always visible
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey.shade300,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-              ],
+                child: const Text('Cancel'),
+              ),
             ),
           ],
         ),

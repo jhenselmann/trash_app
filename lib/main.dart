@@ -25,8 +25,8 @@ Future<void> main() async {
   await Posthog().setup(config);
   await Posthog().group(
     groupType: 'validation_experiment',
-    groupKey: 'validation_yes',
-    groupProperties: {'name': 'validation_yes'},
+    groupKey: 'validation_step',
+    groupProperties: {'name': 'validation_step'},
   );
 
   runApp(
