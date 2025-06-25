@@ -42,7 +42,6 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.eco, color: Colors.green, size: 48),
                   const SizedBox(height: 16),
                   const Text(
                     "Thank you!",
@@ -50,7 +49,7 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    "Your contribution makes a real difference 🌍\n\nThanks to people like you, this app can grow – and the planet gets a little cleaner.",
+                    "Thank you for submitting a new trashcan location. ",
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
