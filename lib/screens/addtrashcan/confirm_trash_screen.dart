@@ -71,7 +71,9 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isValid = _selectedForm != null && _selectedWasteTypes.isNotEmpty;
+    final showFormError = _selectedForm == null;
+    final showWasteTypeError = _selectedWasteTypes.isEmpty;
+    final isValid = !showFormError && !showWasteTypeError;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Confirm Location")),
@@ -95,7 +97,7 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                       _buildFormChip('centre'),
                     ],
                   ),
-                  if (_formError)
+                  if (showFormError)
                     const Padding(
                       padding: EdgeInsets.only(top: 8),
                       child: Text(
@@ -121,7 +123,7 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                           );
                         }).toList(),
                   ),
-                  if (_wasteTypeError)
+                  if (showWasteTypeError)
                     const Padding(
                       padding: EdgeInsets.only(top: 8),
                       child: Text(
@@ -194,19 +196,13 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                                 Navigator.pop(context, id);
                               }
                             }
-                            : () {
-                              setState(() {
-                                _formError = _selectedForm == null;
-                                _wasteTypeError = _selectedWasteTypes.isEmpty;
-                              });
-                            },
+                            : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isValid ? Colors.yellow : Colors.grey.shade300,
+                      backgroundColor: Colors.yellow,
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Confirm Location'),
+                    child: const Text('Add Trashcan'),
                   ),
                 ),
                 const SizedBox(height: 10),
