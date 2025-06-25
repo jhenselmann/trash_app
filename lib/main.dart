@@ -23,18 +23,13 @@ Future<void> main() async {
   config.sessionReplayConfig.maskAllImages = false;
 
   await Posthog().setup(config);
-  await Posthog().group(
-    groupType: 'main',
-    groupKey: 'main',
-    groupProperties: {'name': 'main'},
-  );
+  await Posthog().reset(); // Start with a clean session
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => TrashcanProvider()),
-        // Add other providers here if needed
       ],
       child: const MyApp(),
     ),
@@ -150,7 +145,6 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Stack(
           children: [
-            // 🔶 Das gelbe Blob-Highlight
             AnimatedAlign(
               alignment: _getAlignmentForIndex(_selectedIndex),
               duration: const Duration(milliseconds: 200),
@@ -175,8 +169,6 @@ class _MainScreenState extends State<MainScreen> {
                 },
               ),
             ),
-
-            // 🔘 Die eigentlichen Buttons
             Row(
               children: [
                 _buildNavItem(Icons.add_location, 'New', 0, '/new'),
@@ -250,13 +242,27 @@ class _MainScreenState extends State<MainScreen> {
     );
 
     if (name != null && name.isNotEmpty) {
+      const group = 'main';
+      final sessionId = '${name.toLowerCase()}.$group';
+
       await Posthog().identify(
-        userId: name,
-        userProperties: {'tester_name': name},
+        userId: sessionId,
+        userProperties: {'tester_name': name, 'experiment_group': group},
       );
+
+      await Posthog().group(
+        groupType: 'validation_experiment',
+        groupKey: group,
+        groupProperties: {'name': group},
+      );
+
       await Posthog().capture(
-        eventName: 'tester_identified',
-        properties: {'name': name},
+        eventName: 'tester_session_started',
+        properties: {
+          'session_id': sessionId,
+          'tester_name': name,
+          'experiment_group': group,
+        },
       );
     }
   }
