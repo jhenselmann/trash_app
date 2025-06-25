@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_app/providers/waste_filter_provider.dart';
 import 'waste_type_list.dart';
@@ -25,12 +26,18 @@ class WasteTypeFilter extends StatelessWidget {
                 elevation: 4,
               ),
               onPressed: () {
+                Posthog().capture(eventName: 'filter_opened');
+
                 showDialog(
                   context: context,
                   builder:
                       (_) => WasteTypeListPopup(
                         selected: activeFilters,
                         onChanged: (updated) {
+                          Posthog().capture(
+                            eventName: 'filters_updated',
+                            properties: {'active_filters': updated.toList()},
+                          );
                           context.read<WasteFilterProvider>().updateFilters(
                             updated,
                           );
@@ -51,7 +58,13 @@ class WasteTypeFilter extends StatelessWidget {
               child: SizedBox(
                 height: 32,
                 child: TextButton(
-                  onPressed: () => context.read<WasteFilterProvider>().clear(),
+                  onPressed: () {
+                    Posthog().capture(
+                      eventName: 'filters_cleared',
+                      properties: {'cleared_count': activeFilters.length},
+                    );
+                    context.read<WasteFilterProvider>().clear();
+                  },
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.grey[200],
                     foregroundColor: Colors.black87,
@@ -115,6 +128,15 @@ class WasteTypeFilter extends StatelessWidget {
                                       final updated = Set<String>.from(
                                         activeFilters,
                                       )..remove(filter);
+
+                                      Posthog().capture(
+                                        eventName: 'filter_removed',
+                                        properties: {
+                                          'removed_filter': filter,
+                                          'remaining_filters': updated.toList(),
+                                        },
+                                      );
+
                                       context
                                           .read<WasteFilterProvider>()
                                           .updateFilters(updated);
