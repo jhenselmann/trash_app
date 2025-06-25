@@ -258,7 +258,7 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       await Posthog().group(
-        groupType: 'map_view',
+        groupType: 'list_view',
         groupKey: group,
         groupProperties: {'name': group},
       );
