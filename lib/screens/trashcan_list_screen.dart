@@ -112,8 +112,6 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filters = context.watch<WasteFilterProvider>().filters;
-
     WidgetsBinding.instance.addPostFrameCallback((_) => _updateVisibleList());
 
     return Scaffold(
