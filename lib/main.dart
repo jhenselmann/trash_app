@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
+import 'package:trash_app/providers/waste_filter_provider.dart';
 import 'package:trash_app/screens/more.dart';
 import 'package:trash_app/screens/new_trashcan_screen.dart';
 import 'screens/trash_map_screen.dart';
@@ -33,6 +34,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => TrashcanProvider()),
+        ChangeNotifierProvider(create: (_) => WasteFilterProvider()),
       ],
       child: const MyApp(),
     ),
