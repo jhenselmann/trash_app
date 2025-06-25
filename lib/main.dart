@@ -88,6 +88,14 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey();
   int _selectedIndex = 1;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _askForName(context);
+    });
+  }
+
   void _navigateToRoot(String route) {
     _navigatorKey.currentState?.pushNamedAndRemoveUntil(
       route,
@@ -210,6 +218,41 @@ class _MainScreenState extends State<MainScreen> {
         return Alignment(1.0, 0.0);
       default:
         return Alignment.center;
+    }
+  }
+
+  Future<void> _askForName(BuildContext context) async {
+    final nameController = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Who are you?'),
+            content: TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Enter your name or ID',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed:
+                    () => Navigator.of(context).pop(nameController.text.trim()),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
+
+    if (name != null && name.isNotEmpty) {
+      await Posthog().identify(
+        userId: name,
+        userProperties: {'tester_name': name},
+      );
+      await Posthog().capture(
+        eventName: 'tester_identified',
+        properties: {'name': name},
+      );
     }
   }
 }
