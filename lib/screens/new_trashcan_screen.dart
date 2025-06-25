@@ -44,12 +44,12 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
                 children: [
                   const SizedBox(height: 16),
                   const Text(
-                    "Trashcan added!",
+                    "Thank you!",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    "The trashcan got added. Thank you. ",
+                    "Your contribution makes a real difference 🌍\n\nThanks to people like you, this app can grow – and the planet gets a little cleaner.",
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
