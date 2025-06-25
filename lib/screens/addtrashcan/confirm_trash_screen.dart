@@ -4,6 +4,7 @@ import 'package:trash_app/data/waste_labels.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:trash_app/data/trashcan.dart';
 import 'package:trash_app/services/user_trashcan_service.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 
 class ConfirmTrashcanScreen extends StatefulWidget {
   final LatLng location;
@@ -18,6 +19,15 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
   String? _selectedForm;
   Set<String> _selectedWasteTypes = {};
   String _address = 'Loading address...';
+  bool _formFilledEventSent = false;
+
+  void _checkFormFilled() {
+    final isFilled = _selectedForm != null && _selectedWasteTypes.isNotEmpty;
+    if (isFilled && !_formFilledEventSent) {
+      Posthog().capture(eventName: 'form_filled_complete');
+      _formFilledEventSent = true;
+    }
+  }
 
   @override
   void initState() {
@@ -63,6 +73,7 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
       } else {
         _selectedWasteTypes.add(type);
       }
+      _checkFormFilled();
     });
   }
 
@@ -153,7 +164,13 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (!isValid) return; // <--- einfach still ignorieren
+                      Posthog().capture(eventName: 'trashcan_add_attempt');
+
+                      if (!isValid) {
+                        Posthog().capture(eventName: 'form_validation_error');
+                        return;
+                      }
+
                       final id =
                           'user/${DateTime.now().millisecondsSinceEpoch}';
                       final newTrashcan = Trashcan(
@@ -168,6 +185,9 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                       );
 
                       await UserTrashcanService.addUserTrashcan(newTrashcan);
+
+                      Posthog().capture(eventName: 'trashcan_add_success');
+
                       if (context.mounted) {
                         Navigator.pop(context, id);
                       }
@@ -210,6 +230,7 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
       onSelected: (_) {
         setState(() {
           _selectedForm = form;
+          _checkFormFilled();
         });
       },
     );
