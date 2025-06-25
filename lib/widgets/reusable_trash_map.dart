@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:trash_app/providers/waste_filter_provider.dart';
 import '../services/routing_service.dart';
 import 'package:provider/provider.dart';
 import '../services/location_service.dart';
@@ -158,8 +159,23 @@ class ReusableTrashMapState extends State<ReusableTrashMap> {
   Widget build(BuildContext context) {
     final userLocation = context.watch<LocationService>().currentLocation;
     final provider = context.watch<TrashcanProvider>();
+    final activeFilters = context.watch<WasteFilterProvider>().filters;
     final visibleMarkers =
-        widget.markerFilter?.call(provider.markers) ?? provider.markers;
+        provider.markers.where((marker) {
+          if (activeFilters.isEmpty) return true;
+
+          final key = marker.key;
+          if (key is ValueKey<Map<String, dynamic>>) {
+            final meta = key.value;
+            final raw = meta['wasteTypes'];
+            final types =
+                raw is List
+                    ? raw.map((e) => e.toString()).toList()
+                    : <String>[];
+            return types.any(activeFilters.contains);
+          }
+          return false;
+        }).toList();
 
     return FlutterMap(
       mapController: _mapController,

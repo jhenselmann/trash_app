@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
+import 'package:trash_app/providers/waste_filter_provider.dart';
 import 'package:trash_app/screens/more.dart';
 import 'package:trash_app/screens/new_trashcan_screen.dart';
 import 'screens/trash_map_screen.dart';
@@ -11,26 +12,29 @@ import 'providers/trashcan_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  final flavor = dotenv.env['FLAVOR'];
 
-  final config = PostHogConfig(
-    'phc_QmZWVXEosANnEUQrUH8IZbzmB5do0V1TZjkBTkgjtUH',
-  );
-  config.host = 'https://eu.i.posthog.com';
-  config.debug = true;
-  config.captureApplicationLifecycleEvents = true;
-  config.sessionReplay = true;
-  config.sessionReplayConfig.maskAllTexts = false;
-  config.sessionReplayConfig.maskAllImages = false;
+  if (flavor != 'dev') {
+    final config = PostHogConfig(
+      'phc_QmZWVXEosANnEUQrUH8IZbzmB5do0V1TZjkBTkgjtUH',
+    );
+    config.host = 'https://eu.i.posthog.com';
+    config.debug = true;
+    config.captureApplicationLifecycleEvents = true;
+    config.sessionReplay = true;
+    config.sessionReplayConfig.maskAllTexts = false;
+    config.sessionReplayConfig.maskAllImages = false;
 
-  await Posthog().setup(config);
-  await Posthog().reset();
+    await Posthog().setup(config);
+    await Posthog().reset();
+  }
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => TrashcanProvider()),
-        // Add other providers here if needed
+        ChangeNotifierProvider(create: (_) => WasteFilterProvider()),
       ],
       child: const MyApp(),
     ),
@@ -146,7 +150,6 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Stack(
           children: [
-            // 🔶 Das gelbe Blob-Highlight
             AnimatedAlign(
               alignment: _getAlignmentForIndex(_selectedIndex),
               duration: const Duration(milliseconds: 200),
@@ -171,8 +174,6 @@ class _MainScreenState extends State<MainScreen> {
                 },
               ),
             ),
-
-            // 🔘 Die eigentlichen Buttons
             Row(
               children: [
                 _buildNavItem(Icons.add_location, 'New', 0, '/new'),
