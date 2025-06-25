@@ -18,8 +18,6 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
   String? _selectedForm;
   Set<String> _selectedWasteTypes = {};
   String _address = 'Loading address...';
-  bool _formError = false;
-  bool _wasteTypeError = false;
 
   @override
   void initState() {
@@ -65,15 +63,12 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
       } else {
         _selectedWasteTypes.add(type);
       }
-      if (_wasteTypeError) _wasteTypeError = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final showFormError = _selectedForm == null;
-    final showWasteTypeError = _selectedWasteTypes.isEmpty;
-    final isValid = !showFormError && !showWasteTypeError;
+    final isValid = _selectedForm != null && _selectedWasteTypes.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Confirm Location")),
@@ -97,14 +92,6 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                       _buildFormChip('centre'),
                     ],
                   ),
-                  if (showFormError)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        "Please select a trashcan type.",
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
                   const SizedBox(height: 20),
                   const Text(
                     "What can be disposed here?",
@@ -123,14 +110,6 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                           );
                         }).toList(),
                   ),
-                  if (showWasteTypeError)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        "Please select at least one waste type.",
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
                   const SizedBox(height: 20),
                   const Text(
                     "Location",
@@ -173,30 +152,26 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:
-                        isValid
-                            ? () async {
-                              final id =
-                                  'user/${DateTime.now().millisecondsSinceEpoch}';
-                              final newTrashcan = Trashcan(
-                                id: id,
-                                coordinates: [
-                                  widget.location.longitude,
-                                  widget.location.latitude,
-                                ],
-                                wasteTypes: _selectedWasteTypes.toList(),
-                                wasteForm: _selectedForm!,
-                                addedByUser: true,
-                              );
+                    onPressed: () async {
+                      if (!isValid) return; // <--- einfach still ignorieren
+                      final id =
+                          'user/${DateTime.now().millisecondsSinceEpoch}';
+                      final newTrashcan = Trashcan(
+                        id: id,
+                        coordinates: [
+                          widget.location.longitude,
+                          widget.location.latitude,
+                        ],
+                        wasteTypes: _selectedWasteTypes.toList(),
+                        wasteForm: _selectedForm!,
+                        addedByUser: true,
+                      );
 
-                              await UserTrashcanService.addUserTrashcan(
-                                newTrashcan,
-                              );
-                              if (context.mounted) {
-                                Navigator.pop(context, id);
-                              }
-                            }
-                            : null,
+                      await UserTrashcanService.addUserTrashcan(newTrashcan);
+                      if (context.mounted) {
+                        Navigator.pop(context, id);
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.yellow,
                       foregroundColor: Colors.black,
@@ -235,7 +210,6 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
       onSelected: (_) {
         setState(() {
           _selectedForm = form;
-          if (_formError) _formError = false;
         });
       },
     );
