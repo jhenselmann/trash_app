@@ -24,9 +24,9 @@ Future<void> main() async {
 
   await Posthog().setup(config);
   await Posthog().group(
-    groupType: 'reward_experiment',
-    groupKey: 'reward_system',
-    groupProperties: {'name': 'reward_system'},
+    groupType: 'confirmation_experiment',
+    groupKey: 'unfriendly',
+    groupProperties: {'name': 'unfriendly'},
   );
 
   runApp(
