@@ -12,33 +12,29 @@ import 'providers/trashcan_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  final flavor = dotenv.env['FLAVOR'];
+  final config = PostHogConfig(
+    'phc_QmZWVXEosANnEUQrUH8IZbzmB5do0V1TZjkBTkgjtUH',
+  );
+  config.host = 'https://eu.i.posthog.com';
+  config.debug = true;
+  config.captureApplicationLifecycleEvents = true;
+  config.sessionReplay = true;
+  config.sessionReplayConfig.maskAllTexts = false;
+  config.sessionReplayConfig.maskAllImages = false;
 
-  if (flavor != 'dev') {
-    final config = PostHogConfig(
-      'phc_QmZWVXEosANnEUQrUH8IZbzmB5do0V1TZjkBTkgjtUH',
-    );
-    config.host = 'https://eu.i.posthog.com';
-    config.debug = true;
-    config.captureApplicationLifecycleEvents = true;
-    config.sessionReplay = true;
-    config.sessionReplayConfig.maskAllTexts = false;
-    config.sessionReplayConfig.maskAllImages = false;
+  await Posthog().setup(config);
+  await Posthog().reset();
 
-    await Posthog().setup(config);
-    await Posthog().reset();
-
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => LocationService()),
-          ChangeNotifierProvider(create: (_) => TrashcanProvider()),
-          ChangeNotifierProvider(create: (_) => WasteFilterProvider()),
-        ],
-        child: const MyApp(),
-      ),
-    );
-  }
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LocationService()),
+        ChangeNotifierProvider(create: (_) => TrashcanProvider()),
+        ChangeNotifierProvider(create: (_) => WasteFilterProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
