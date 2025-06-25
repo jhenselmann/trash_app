@@ -23,6 +23,11 @@ Future<void> main() async {
   config.sessionReplayConfig.maskAllImages = false;
 
   await Posthog().setup(config);
+  await Posthog().group(
+    groupType: 'validation_experiment',
+    groupKey: 'validation_yes',
+    groupProperties: {'name': 'validation_yes'},
+  );
 
   runApp(
     MultiProvider(
