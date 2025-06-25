@@ -258,7 +258,7 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       await Posthog().group(
-        groupType: 'validation_experiment',
+        groupType: 'no_group',
         groupKey: group,
         groupProperties: {'name': group},
       );
