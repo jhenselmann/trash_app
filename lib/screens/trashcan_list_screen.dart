@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:provider/provider.dart';
+import 'package:trash_app/providers/waste_filter_provider.dart';
 import 'package:trash_app/services/user_trashcan_service.dart';
 import 'dart:convert';
 
 import 'package:trash_app/widgets/trashcan_tile.dart';
+import '../widgets/waste_type_filter.dart';
 
 class TrashcanListScreen extends StatefulWidget {
   final LatLng? userLocation;
-  final Set<String> activeFilters;
-
+  final Set<String> activeFilters; // bleibt nur für initialen Push
   const TrashcanListScreen({
     super.key,
     required this.userLocation,
@@ -29,6 +31,13 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Init Filter einmalig übernehmen (optional)
+    final filterProvider = context.read<WasteFilterProvider>();
+    if (filterProvider.filters.isEmpty && widget.activeFilters.isNotEmpty) {
+      filterProvider.updateFilters(widget.activeFilters);
+    }
+
     _loadTrashcans();
   }
 
@@ -38,7 +47,6 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
     final features = List<Map<String, dynamic>>.from(data['features']);
 
     final userTrashcans = await UserTrashcanService.loadUserTrashcans();
-
     final userTrashcanMaps =
         userTrashcans
             .map(
@@ -64,17 +72,22 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
       });
     }
 
-    _allTrashcans = combined;
-    _updateVisibleList();
+    setState(() {
+      _allTrashcans = combined;
+    });
+
+    _updateVisibleList(); // initial laden
   }
 
   void _updateVisibleList() {
+    final filters = context.read<WasteFilterProvider>().filters;
     final start = _currentPage * _itemsPerPage;
+
     final filtered =
         _allTrashcans.where((item) {
-          if (widget.activeFilters.isEmpty) return true;
+          if (filters.isEmpty) return true;
           final types = List<String>.from(item['wasteTypes'] ?? []);
-          return types.any(widget.activeFilters.contains);
+          return types.any(filters.contains);
         }).toList();
 
     setState(() {
@@ -85,34 +98,39 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
   void _nextPage() {
     setState(() {
       _currentPage++;
-      _updateVisibleList();
     });
+    _updateVisibleList();
   }
 
   void _previousPage() {
     if (_currentPage == 0) return;
     setState(() {
       _currentPage--;
-      _updateVisibleList();
     });
+    _updateVisibleList();
   }
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _updateVisibleList());
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Nearby Trashcans')),
       body: Column(
         children: [
+          const WasteTypeFilter(),
           Expanded(
-            child: ListView.builder(
-              itemCount: _visibleTrashcans.length,
-              itemBuilder: (context, index) {
-                return TrashcanTile(
-                  item: _visibleTrashcans[index],
-                  userLocation: widget.userLocation,
-                );
-              },
-            ),
+            child:
+                _visibleTrashcans.isEmpty
+                    ? const Center(child: Text('Keine Mülleimer gefunden.'))
+                    : ListView.builder(
+                      itemCount: _visibleTrashcans.length,
+                      itemBuilder: (context, index) {
+                        return TrashcanTile(
+                          item: _visibleTrashcans[index],
+                          userLocation: widget.userLocation,
+                        );
+                      },
+                    ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

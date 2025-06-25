@@ -55,7 +55,10 @@ class WasteMarkerLoader {
 
       markers.add(
         Marker(
-          key: ValueKey(id),
+          key: ValueKey({
+            'id': id,
+            'wasteTypes': List<String>.from(wasteTypes),
+          }),
           point: latLng,
           width: 30,
           height: 30,
