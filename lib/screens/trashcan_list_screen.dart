@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_app/providers/waste_filter_provider.dart';
+import 'package:trash_app/screens/trash_map_screen.dart';
 import 'package:trash_app/services/user_trashcan_service.dart';
 import 'dart:convert';
 
@@ -133,7 +134,33 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
     return Scaffold(
       body: Column(
         children: [
-          const WasteTypeFilter(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                const Expanded(child: WasteTypeFilter()),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TrashMapScreen()),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(30),
+                  child: Row(
+                    children: const [
+                      Text(
+                        'Map View',
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.map_outlined, size: 40, color: Colors.black),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child:
                 _visibleTrashcans.isEmpty

@@ -3,6 +3,7 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:trash_app/providers/waste_filter_provider.dart';
 import 'package:trash_app/screens/more.dart';
 import 'package:trash_app/screens/new_trashcan_screen.dart';
+import 'package:trash_app/screens/trashcan_list_screen.dart';
 import 'screens/trash_map_screen.dart';
 import 'package:provider/provider.dart';
 import 'services/location_service.dart';
@@ -113,16 +114,22 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: Navigator(
         key: _navigatorKey,
-        initialRoute: '/map',
+        initialRoute: '/list',
         onGenerateRoute: (RouteSettings settings) {
           Widget page;
           switch (settings.name) {
             case '/new':
               page = const NewTrashcanScreen();
               break;
-            case '/map':
-              page = const TrashMapScreen();
+            case '/list':
+              page = TrashcanListScreen(
+                userLocation: context.read<LocationService>().currentLocation,
+                activeFilters: context.read<WasteFilterProvider>().filters,
+              );
               break;
+            // case '/map':
+            //   page = const TrashMapScreen();
+            //   break;
             case '/more':
               page = const MorePage();
               break;
@@ -177,7 +184,7 @@ class _MainScreenState extends State<MainScreen> {
             Row(
               children: [
                 _buildNavItem(Icons.add_location, 'New', 0, '/new'),
-                _buildNavItem(Icons.map, 'Map', 1, '/map'),
+                _buildNavItem(Icons.list, 'List', 1, '/list'),
                 _buildNavItem(Icons.more_horiz, 'More', 2, '/more'),
               ],
             ),
