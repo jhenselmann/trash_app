@@ -4,6 +4,7 @@ import 'package:trash_app/data/waste_labels.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:trash_app/data/trashcan.dart';
 import 'package:trash_app/services/user_trashcan_service.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 
 class ConfirmTrashcanScreen extends StatefulWidget {
   final LatLng location;
@@ -20,6 +21,7 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
   String _address = 'Loading address...';
   bool _formError = false;
   bool _wasteTypeError = false;
+  bool _formFilledSent = false;
 
   @override
   void initState() {
@@ -45,6 +47,14 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
     }
   }
 
+  void _checkFormFilled() {
+    final isFilled = _selectedForm != null && _selectedWasteTypes.isNotEmpty;
+    if (isFilled && !_formFilledSent) {
+      Posthog().capture(eventName: 'form_filled_complete');
+      _formFilledSent = true;
+    }
+  }
+
   String _getTitleForForm(String? form) {
     switch (form) {
       case 'basket':
@@ -66,6 +76,7 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
         _selectedWasteTypes.add(type);
       }
       if (_wasteTypeError) _wasteTypeError = false;
+      _checkFormFilled();
     });
   }
 
@@ -173,38 +184,56 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:
-                        isValid
-                            ? () async {
-                              final id =
-                                  'user/${DateTime.now().millisecondsSinceEpoch}';
-                              final newTrashcan = Trashcan(
-                                id: id,
-                                coordinates: [
-                                  widget.location.longitude,
-                                  widget.location.latitude,
-                                ],
-                                wasteTypes: _selectedWasteTypes.toList(),
-                                wasteForm: _selectedForm!,
-                                addedByUser: true,
-                              );
+                    onPressed: () async {
+                      Posthog().capture(eventName: 'trashcan_add_attempt');
 
-                              await UserTrashcanService.addUserTrashcan(
-                                newTrashcan,
-                              );
-                              if (context.mounted) {
-                                Navigator.pop(context, id);
-                              }
-                            }
-                            : null,
+                      final isValid =
+                          _selectedForm != null &&
+                          _selectedWasteTypes.isNotEmpty;
+
+                      if (!isValid) {
+                        Posthog().capture(eventName: 'form_validation_error');
+                        setState(() {
+                          _formError = _selectedForm == null;
+                          _wasteTypeError = _selectedWasteTypes.isEmpty;
+                        });
+                        return;
+                      }
+
+                      Posthog().capture(eventName: 'trashcan_add_success');
+
+                      final id =
+                          'user/${DateTime.now().millisecondsSinceEpoch}';
+                      final newTrashcan = Trashcan(
+                        id: id,
+                        coordinates: [
+                          widget.location.longitude,
+                          widget.location.latitude,
+                        ],
+                        wasteTypes: _selectedWasteTypes.toList(),
+                        wasteForm: _selectedForm!,
+                        addedByUser: true,
+                      );
+
+                      await UserTrashcanService.addUserTrashcan(newTrashcan);
+
+                      if (context.mounted) {
+                        Navigator.pop(context, id);
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.yellow,
+                      backgroundColor:
+                          (_selectedForm != null &&
+                                  _selectedWasteTypes.isNotEmpty)
+                              ? Colors.yellow
+                              : Colors.grey.shade400, // Farbe je nach Validität
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: const Text('Add Trashcan'),
                   ),
                 ),
+
                 const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
@@ -236,6 +265,7 @@ class _ConfirmTrashcanScreenState extends State<ConfirmTrashcanScreen> {
         setState(() {
           _selectedForm = form;
           if (_formError) _formError = false;
+          _checkFormFilled();
         });
       },
     );
