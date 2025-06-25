@@ -11,19 +11,22 @@ import 'providers/trashcan_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  final flavor = dotenv.env['FLAVOR'];
 
-  final config = PostHogConfig(
-    'phc_QmZWVXEosANnEUQrUH8IZbzmB5do0V1TZjkBTkgjtUH',
-  );
-  config.host = 'https://eu.i.posthog.com';
-  config.debug = true;
-  config.captureApplicationLifecycleEvents = true;
-  config.sessionReplay = true;
-  config.sessionReplayConfig.maskAllTexts = false;
-  config.sessionReplayConfig.maskAllImages = false;
+  if (flavor != 'dev') {
+    final config = PostHogConfig(
+      'phc_QmZWVXEosANnEUQrUH8IZbzmB5do0V1TZjkBTkgjtUH',
+    );
+    config.host = 'https://eu.i.posthog.com';
+    config.debug = true;
+    config.captureApplicationLifecycleEvents = true;
+    config.sessionReplay = true;
+    config.sessionReplayConfig.maskAllTexts = false;
+    config.sessionReplayConfig.maskAllImages = false;
 
-  await Posthog().setup(config);
-  await Posthog().reset(); // Start with a clean session
+    await Posthog().setup(config);
+    await Posthog().reset();
+  }
 
   runApp(
     MultiProvider(
@@ -219,6 +222,8 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _askForName(BuildContext context) async {
+    final flavor = dotenv.env['FLAVOR'];
+    if (flavor == 'dev') return;
     final nameController = TextEditingController();
     final name = await showDialog<String>(
       context: context,
