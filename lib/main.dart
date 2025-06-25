@@ -249,7 +249,7 @@ class _MainScreenState extends State<MainScreen> {
     );
 
     if (name != null && name.isNotEmpty) {
-      const group = 'filter_system_yes';
+      const group = 'filter_system_no';
       final sessionId = '${name.toLowerCase()}.$group';
 
       await Posthog().identify(
