@@ -23,11 +23,7 @@ Future<void> main() async {
   config.sessionReplayConfig.maskAllImages = false;
 
   await Posthog().setup(config);
-  await Posthog().group(
-    groupType: 'validation_experiment',
-    groupKey: 'validation_yes',
-    groupProperties: {'name': 'validation_yes'},
-  );
+  await Posthog().reset();
 
   runApp(
     MultiProvider(
@@ -250,13 +246,27 @@ class _MainScreenState extends State<MainScreen> {
     );
 
     if (name != null && name.isNotEmpty) {
+      const group = 'validation_yes'; // or dynamically choose per session
+      final sessionId = '${name.toLowerCase()}.$group';
+
       await Posthog().identify(
-        userId: name,
-        userProperties: {'tester_name': name},
+        userId: sessionId,
+        userProperties: {'tester_name': name, 'experiment_group': group},
       );
+
+      await Posthog().group(
+        groupType: 'validation_experiment',
+        groupKey: group,
+        groupProperties: {'name': group},
+      );
+
       await Posthog().capture(
-        eventName: 'tester_identified',
-        properties: {'name': name},
+        eventName: 'tester_session_started',
+        properties: {
+          'session_id': sessionId,
+          'tester_name': name,
+          'experiment_group': group,
+        },
       );
     }
   }
