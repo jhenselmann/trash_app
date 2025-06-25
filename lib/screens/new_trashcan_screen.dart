@@ -42,6 +42,7 @@ class _NewTrashcanScreenState extends State<NewTrashcanScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const Icon(Icons.eco, color: Colors.green, size: 48),
                   const SizedBox(height: 16),
                   const Text(
                     "Thank you!",
