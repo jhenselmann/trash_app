@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:trash_app/screens/more.dart';
 import 'package:trash_app/screens/new_trashcan_screen.dart';
 import 'screens/trash_map_screen.dart';
@@ -10,6 +11,18 @@ import 'providers/trashcan_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+
+  final config = PostHogConfig(
+    'phc_QmZWVXEosANnEUQrUH8IZbzmB5do0V1TZjkBTkgjtUH',
+  );
+  config.host = 'https://eu.i.posthog.com';
+  config.debug = true;
+  config.captureApplicationLifecycleEvents = true;
+  config.sessionReplay = true;
+  config.sessionReplayConfig.maskAllTexts = false;
+  config.sessionReplayConfig.maskAllImages = false;
+
+  await Posthog().setup(config);
 
   runApp(
     MultiProvider(
@@ -28,36 +41,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Trash App',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Roboto',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.yellow,
+    return PostHogWidget(
+      child: MaterialApp(
+        title: 'Trash App',
+        theme: ThemeData(
           brightness: Brightness.light,
-          primary: Colors.black,
-          secondary: Colors.yellow,
-        ),
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.black),
-          titleMedium: TextStyle(color: Colors.black),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 1,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
+          scaffoldBackgroundColor: Colors.white,
+          fontFamily: 'Roboto',
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.yellow,
+            brightness: Brightness.light,
+            primary: Colors.black,
+            secondary: Colors.yellow,
+          ),
+          textTheme: const TextTheme(
+            bodyMedium: TextStyle(color: Colors.black),
+            titleMedium: TextStyle(color: Colors.black),
+          ),
+          iconTheme: const IconThemeData(color: Colors.black),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 1,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+            ),
           ),
         ),
+        home: const MainScreen(),
       ),
-      home: const MainScreen(),
     );
   }
 }
