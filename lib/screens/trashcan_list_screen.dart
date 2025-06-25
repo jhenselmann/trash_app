@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_app/providers/waste_filter_provider.dart';
 import 'package:trash_app/services/user_trashcan_service.dart';
@@ -27,18 +28,33 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
   int _currentPage = 0;
   List<Map<String, dynamic>> _allTrashcans = [];
   List<Map<String, dynamic>> _visibleTrashcans = [];
+  DateTime? _screenStartTime;
 
   @override
   void initState() {
     super.initState();
+    _screenStartTime = DateTime.now();
 
     // Init Filter einmalig übernehmen (optional)
     final filterProvider = context.read<WasteFilterProvider>();
     if (filterProvider.filters.isEmpty && widget.activeFilters.isNotEmpty) {
       filterProvider.updateFilters(widget.activeFilters);
     }
-
+    Posthog().capture(
+      eventName: 'screen_viewed',
+      properties: {'screen': 'list', 'timestamp': _screenStartTime.toString()},
+    );
     _loadTrashcans();
+  }
+
+  @override
+  void dispose() {
+    final duration = DateTime.now().difference(_screenStartTime!);
+    Posthog().capture(
+      eventName: 'screen_left',
+      properties: {'screen': 'list', 'duration_seconds': duration.inSeconds},
+    );
+    super.dispose();
   }
 
   Future<void> _loadTrashcans() async {

@@ -249,7 +249,7 @@ class _MainScreenState extends State<MainScreen> {
     );
 
     if (name != null && name.isNotEmpty) {
-      const group = 'main';
+      const group = 'view';
       final sessionId = '${name.toLowerCase()}.$group';
 
       await Posthog().identify(
@@ -258,7 +258,7 @@ class _MainScreenState extends State<MainScreen> {
       );
 
       await Posthog().group(
-        groupType: 'no_group',
+        groupType: 'map_view',
         groupKey: group,
         groupProperties: {'name': group},
       );

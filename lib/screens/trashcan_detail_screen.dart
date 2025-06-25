@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_app/services/location_service.dart';
 import 'package:latlong2/latlong.dart';
@@ -23,6 +24,16 @@ class TrashcanDetailScreen extends StatelessWidget {
     final form = item['wasteForm'];
     final addedBy = item['addedBy'] as String?;
     final userLocation = context.watch<LocationService>().currentLocation;
+
+    Posthog().capture(
+      eventName: 'trashcan_detail_opened',
+      properties: {
+        'source': 'list',
+        'waste_form': item['wasteForm'] ?? 'unknown',
+        'waste_types': item['wasteTypes'] ?? [],
+        'added_by': item['addedBy'] ?? 'unknown',
+      },
+    );
 
     double? distance;
     if (userLocation != null) {

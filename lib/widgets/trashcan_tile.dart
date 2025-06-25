@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:trash_app/screens/trash_map_screen.dart';
 import 'package:trash_app/services/saved_trashcan_service.dart';
 import 'package:trash_app/screens/trashcan_detail_screen.dart';
@@ -115,8 +116,8 @@ class _TrashcanTileState extends State<TrashcanTile> {
                 const SizedBox(height: 4),
                 Text(
                   dist != null
-                      ? 'Entfernung: ${_formatDistance(dist)}'
-                      : 'Entfernung: –',
+                      ? 'Distance: ${_formatDistance(dist)}'
+                      : 'Distance: –',
                   style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ],
@@ -141,6 +142,16 @@ class _TrashcanTileState extends State<TrashcanTile> {
               _actionButton(Icons.alt_route, "Route", () {
                 final coords = widget.item['coordinates'];
                 final target = LatLng(coords[1], coords[0]);
+
+                Posthog().capture(
+                  eventName: 'route_started',
+                  properties: {
+                    'source': 'list',
+                    'waste_form': widget.item['wasteForm'] ?? 'unknown',
+                    'waste_types': widget.item['wasteTypes'] ?? [],
+                    'added_by': widget.item['addedBy'] ?? 'unknown',
+                  },
+                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(

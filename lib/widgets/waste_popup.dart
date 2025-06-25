@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:trash_app/screens/trash_map_screen.dart';
 import 'package:trash_app/widgets/trashcan_info_view.dart';
 import '../services/saved_trashcan_service.dart';
@@ -32,6 +33,15 @@ class _WastePopupState extends State<WastePopup> {
   @override
   void initState() {
     super.initState();
+    Posthog().capture(
+      eventName: 'trashcan_detail_opened',
+      properties: {
+        'source': 'map',
+        'waste_form': widget.wasteForm,
+        'waste_types': widget.wasteTypes,
+        'added_by': widget.addedBy ?? 'unknown',
+      },
+    );
     _loadSavedStatus();
   }
 
@@ -101,6 +111,15 @@ class _WastePopupState extends State<WastePopup> {
               icon: const Icon(Icons.alt_route, size: 18),
               label: const Text('Route'),
               onPressed: () {
+                Posthog().capture(
+                  eventName: 'route_started',
+                  properties: {
+                    'source': 'map',
+                    'waste_form': widget.wasteForm,
+                    'waste_types': widget.wasteTypes,
+                    'added_by': widget.addedBy ?? 'unknown',
+                  },
+                );
                 Navigator.of(context).pop();
                 Future.delayed(const Duration(milliseconds: 100), () {
                   widget.navigator.push(

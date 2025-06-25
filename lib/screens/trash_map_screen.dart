@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_app/screens/trashcan_list_screen.dart';
 import 'package:trash_app/services/location_service.dart';
@@ -24,20 +25,36 @@ class TrashMapScreen extends StatefulWidget {
 
 class _TrashMapScreenState extends State<TrashMapScreen> {
   final GlobalKey<ReusableTrashMapState> _mapKey = GlobalKey();
+  DateTime? _screenStartTime;
 
   @override
   void initState() {
     super.initState();
+    _screenStartTime = DateTime.now();
+    Posthog().capture(
+      eventName: 'screen_viewed',
+      properties: {'screen': 'map', 'timestamp': _screenStartTime.toString()},
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.focusTrashcan != null) {
         _mapKey.currentState?.centerOnPoint(widget.focusTrashcan!);
         if (widget.routeToFocus) {
           _mapKey.currentState?.routeToPoint(widget.focusTrashcan!).then((_) {
-            setState(() {}); // zeigt die Route
+            setState(() {});
           });
         }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    final duration = DateTime.now().difference(_screenStartTime!);
+    Posthog().capture(
+      eventName: 'screen_left',
+      properties: {'screen': 'map', 'duration_seconds': duration.inSeconds},
+    );
+    super.dispose();
   }
 
   List<Marker> _applyWasteTypeFilter(List<Marker> all) {
@@ -144,9 +161,13 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
               heroTag: 'main',
               onPressed: () async {
                 if (routeActive) {
+                  Posthog().capture(eventName: 'route_to_nearest_cancelled');
+
                   _mapKey.currentState?.cancelRoute();
                   setState(() {});
                 } else {
+                  Posthog().capture(eventName: 'route_to_nearest_pressed');
+
                   await _mapKey.currentState?.routeToNearestTrashcan();
                   setState(() {});
                 }
