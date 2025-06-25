@@ -23,6 +23,11 @@ Future<void> main() async {
   config.sessionReplayConfig.maskAllImages = false;
 
   await Posthog().setup(config);
+  await Posthog().group(
+    groupType: 'reward_experiment',
+    groupKey: 'no_reward_system',
+    groupProperties: {'name': 'no_reward_system'},
+  );
 
   runApp(
     MultiProvider(

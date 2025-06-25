@@ -21,7 +21,6 @@ class TrashcanDetailScreen extends StatelessWidget {
     final coords = item['coordinates'];
     final types = List<String>.from(item['wasteTypes'] ?? []);
     final form = item['wasteForm'];
-    final addedBy = item['addedBy'] as String?;
     final userLocation = context.watch<LocationService>().currentLocation;
 
     double? distance;
