@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:trash_app/screens/trash_map_screen.dart';
 import 'package:trash_app/widgets/trashcan_info_view.dart';
 import '../services/saved_trashcan_service.dart';
 
@@ -9,6 +10,7 @@ class WastePopup extends StatefulWidget {
   final List<String> wasteTypes;
   final String wasteForm;
   final String? addedBy;
+  final NavigatorState navigator;
 
   const WastePopup({
     super.key,
@@ -17,6 +19,7 @@ class WastePopup extends StatefulWidget {
     required this.wasteTypes,
     required this.wasteForm,
     this.addedBy,
+    required this.navigator,
   });
 
   @override
@@ -68,9 +71,11 @@ class _WastePopupState extends State<WastePopup> {
             ],
           ),
           IconButton(
+            padding: EdgeInsets.zero,
             icon: Icon(
               _isSaved ? Icons.bookmark : Icons.bookmark_border,
               color: Colors.black87,
+              size: 20,
             ),
             tooltip: _isSaved ? 'Saved' : 'Save',
             onPressed: _toggleSave,
@@ -84,15 +89,38 @@ class _WastePopupState extends State<WastePopup> {
             location: widget.location,
             wasteTypes: widget.wasteTypes,
             wasteForm: widget.wasteForm,
-            addedBy: widget.addedBy, // ← Wichtig
+            addedBy: widget.addedBy,
           ),
         ),
       ),
-
+      actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+        Row(
+          children: [
+            TextButton.icon(
+              icon: const Icon(Icons.alt_route, size: 18),
+              label: const Text('Route'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  widget.navigator.push(
+                    MaterialPageRoute(
+                      builder:
+                          (_) => TrashMapScreen(
+                            focusTrashcan: widget.location,
+                            routeToFocus: true,
+                          ),
+                    ),
+                  );
+                });
+              },
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
         ),
       ],
     );

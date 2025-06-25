@@ -70,6 +70,7 @@ class WasteMarkerLoader {
                       wasteTypes: List<String>.from(wasteTypes),
                       wasteForm: wasteForm,
                       addedBy: item['addedBy'],
+                      navigator: Navigator.of(context),
                     ),
               );
             },
