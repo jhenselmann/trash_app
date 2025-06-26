@@ -161,7 +161,7 @@ class _TrashMapScreenState extends State<TrashMapScreen> {
               heroTag: 'main',
               onPressed: () async {
                 if (routeActive) {
-                  Posthog().capture(eventName: 'route_to_nearest_cancelled');
+                  Posthog().capture(eventName: 'route_cancelled');
 
                   _mapKey.currentState?.cancelRoute();
                   setState(() {});
