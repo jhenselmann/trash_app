@@ -7,6 +7,7 @@ import 'package:trash_app/providers/waste_filter_provider.dart';
 import 'package:trash_app/screens/trash_map_screen.dart';
 import 'package:trash_app/services/user_trashcan_service.dart';
 import 'dart:convert';
+import 'package:trash_app/services/location_service.dart';
 
 import 'package:trash_app/widgets/trashcan_tile.dart';
 import '../widgets/waste_type_filter.dart';
@@ -79,7 +80,8 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
 
     final combined = [...features, ...userTrashcanMaps];
 
-    final userLoc = widget.userLocation;
+    final userLoc = context.read<LocationService>().currentLocation;
+
     if (userLoc != null) {
       final dist = const Distance();
       combined.sort((a, b) {
@@ -170,7 +172,8 @@ class _TrashcanListScreenState extends State<TrashcanListScreen> {
                       itemBuilder: (context, index) {
                         return TrashcanTile(
                           item: _visibleTrashcans[index],
-                          userLocation: widget.userLocation,
+                          userLocation:
+                              context.read<LocationService>().currentLocation,
                         );
                       },
                     ),
