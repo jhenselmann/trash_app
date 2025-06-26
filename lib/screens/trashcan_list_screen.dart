@@ -14,7 +14,7 @@ import '../widgets/waste_type_filter.dart';
 
 class TrashcanListScreen extends StatefulWidget {
   final LatLng? userLocation;
-  final Set<String> activeFilters; // bleibt nur für initialen Push
+  final Set<String> activeFilters;
   const TrashcanListScreen({
     super.key,
     required this.userLocation,
